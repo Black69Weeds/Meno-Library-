@@ -1,5 +1,6 @@
+
 --[[
-    Meno Library
+    Meno Library (Fixed)
 ]]
 
 -- Variables 
@@ -760,7 +761,8 @@
                     BorderColor3 = rgb(0, 0, 0);
                     BorderSizePixel = 0;
                     BackgroundColor3 = rgb(14, 14, 16)
-                }); items[ "main" ].Position = dim2(0, items[ "main" ].AbsolutePosition.X, 0, items[ "main" ].AbsolutePosition.Y)
+                }); 
+                -- FIXED: Removed line that reset position to 0,0 when parent is nil
                 
                 -- Store original size for animation
                 local original_size = cfg.size
