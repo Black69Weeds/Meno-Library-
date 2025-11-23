@@ -12,7 +12,7 @@ local library = loadstring(game:HttpGet(
     NOTE: This example is just to showcase how to use:
         window -> tab -> column -> section -> controls
 ]]
-
+library:home(Meno)
 --// MAIN WINDOW
 local window = library:window({
     name     = "GAY",
@@ -21,7 +21,6 @@ local window = library:window({
 })
 
 window:seperator({ name = "General" })
-library:home(SYZENHUB)
 ---------------------------------------------------------------------
 --// TAB EXAMPLE 1 – WITH SUB TABS + COLUMNS
 ---------------------------------------------------------------------
