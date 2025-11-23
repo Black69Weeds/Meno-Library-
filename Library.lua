@@ -1,7 +1,6 @@
-
 --[[
 
-    Meno Library (Updated)
+    Meno Library
     
 ]]
 
@@ -77,7 +76,7 @@
         connections = {},   
         notifications = {notifs = {}},
         current_open; 
-        open_button_label = nil; -- For the home() function
+        open_button_label = nil;
     }
 
     local themes = {
@@ -296,7 +295,6 @@
             local start_size = frame.Position
             local start 
 
-            -- [UPDATED] Added Touch support
             frame.InputBegan:Connect(function(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
                     dragging = true
@@ -312,7 +310,6 @@
             end)
 
             library:connection(uis.InputChanged, function(input, game_event) 
-                -- [UPDATED] Added Touch support in loop
                 if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
                     local viewport_x = camera.ViewportSize.X
                     local viewport_y = camera.ViewportSize.Y
@@ -490,6 +487,10 @@
                 library[ "open_gui" ]:Destroy()
             end
 
+            if library[ "key_gui" ] then
+                library[ "key_gui" ]:Destroy()
+            end
+
             for index, connection in library.connections do 
                 connection:Disconnect() 
                 connection = nil 
@@ -498,7 +499,6 @@
             library = nil 
         end 
 
-        -- [UPDATED] New function to change home button name
         function library:home(text)
             if library.open_button_label then
                 library.open_button_label.Text = text
@@ -506,6 +506,151 @@
         end
     --
     
+    -- Key System Function
+    function library:key_system(settings, on_success)
+        local key_gui = library:create("ScreenGui", {
+            Parent = coregui,
+            Name = "MileniumKeySystem",
+            ZIndexBehavior = Enum.ZIndexBehavior.Global,
+            IgnoreGuiInset = true
+        })
+        library["key_gui"] = key_gui
+
+        local main_frame = library:create("Frame", {
+            Parent = key_gui,
+            Size = dim2(0, 400, 0, 250),
+            Position = dim2(0.5, -200, 0.5, -125),
+            BackgroundColor3 = rgb(14, 14, 16),
+            BorderSizePixel = 0
+        })
+
+        library:create("UICorner", {Parent = main_frame, CornerRadius = dim(0, 10)})
+        library:create("UIStroke", {Parent = main_frame, Color = rgb(23, 23, 29), ApplyStrokeMode = Enum.ApplyStrokeMode.Border})
+
+        -- Title
+        library:create("TextLabel", {
+            Parent = main_frame,
+            Text = settings.Title or "Key System",
+            FontFace = fonts.font,
+            TextColor3 = themes.preset.accent,
+            TextSize = 24,
+            Size = dim2(1, 0, 0, 40),
+            BackgroundTransparency = 1,
+            Position = dim2(0, 0, 0, 10)
+        })
+
+        -- Subtitle
+        library:create("TextLabel", {
+            Parent = main_frame,
+            Text = settings.Subtitle or "Game Name",
+            FontFace = fonts.small,
+            TextColor3 = rgb(150, 150, 150),
+            TextSize = 16,
+            Size = dim2(1, 0, 0, 20),
+            BackgroundTransparency = 1,
+            Position = dim2(0, 0, 0, 45)
+        })
+
+        -- Note
+        library:create("TextLabel", {
+            Parent = main_frame,
+            Text = settings.Note or "Join Discord for key",
+            FontFace = fonts.small,
+            TextColor3 = rgb(100, 100, 100),
+            TextSize = 14,
+            Size = dim2(1, 0, 0, 20),
+            BackgroundTransparency = 1,
+            Position = dim2(0, 0, 0, 70)
+        })
+
+        -- Input
+        local input_box = library:create("TextBox", {
+            Parent = main_frame,
+            Size = dim2(0, 300, 0, 40),
+            Position = dim2(0.5, -150, 0.5, 0),
+            BackgroundColor3 = rgb(25, 25, 29),
+            TextColor3 = rgb(255, 255, 255),
+            PlaceholderText = "Enter Key Here...",
+            FontFace = fonts.small,
+            TextSize = 16,
+            BorderSizePixel = 0
+        })
+        library:create("UICorner", {Parent = input_box, CornerRadius = dim(0, 6)})
+
+        -- Check Button
+        local check_btn = library:create("TextButton", {
+            Parent = main_frame,
+            Size = dim2(0, 140, 0, 35),
+            Position = dim2(0.5, -150, 0.8, 0),
+            BackgroundColor3 = themes.preset.accent,
+            Text = "Check Key",
+            TextColor3 = rgb(255, 255, 255),
+            FontFace = fonts.font,
+            TextSize = 16,
+            AutoButtonColor = false
+        })
+        library:create("UICorner", {Parent = check_btn, CornerRadius = dim(0, 6)})
+
+        -- Second Action Button
+        local action_btn = library:create("TextButton", {
+            Parent = main_frame,
+            Size = dim2(0, 140, 0, 35),
+            Position = dim2(0.5, 10, 0.8, 0),
+            BackgroundColor3 = rgb(40, 40, 45),
+            Text = settings.SecondAction.Type == "Discord" and "Join Discord" or "Get Key",
+            TextColor3 = rgb(255, 255, 255),
+            FontFace = fonts.font,
+            TextSize = 16,
+            AutoButtonColor = false
+        })
+        library:create("UICorner", {Parent = action_btn, CornerRadius = dim(0, 6)})
+
+        -- Logic
+        local key_file = "MileniumKey_" .. game.PlaceId .. ".txt"
+        
+        -- Auto Load
+        if settings.SaveKey and isfile(key_file) then
+            local saved_key = readfile(key_file)
+            if find(settings.Key, saved_key) then
+                key_gui:Destroy()
+                on_success()
+                return
+            end
+        end
+
+        check_btn.MouseButton1Click:Connect(function()
+            if find(settings.Key, input_box.Text) then
+                if settings.SaveKey then
+                    writefile(key_file, input_box.Text)
+                end
+                
+                -- Success Animation
+                library:tween(main_frame, {Size = dim2(0, 0, 0, 0), BackgroundTransparency = 1}, Enum.EasingStyle.Back, 0.5)
+                task.wait(0.5)
+                key_gui:Destroy()
+                on_success()
+            else
+                input_box.Text = "Incorrect Key!"
+                task.wait(1)
+                input_box.Text = ""
+            end
+        end)
+
+        action_btn.MouseButton1Click:Connect(function()
+            if settings.SecondAction.Type == "Discord" then
+                setclipboard("https://discord.gg/" .. settings.SecondAction.Parameter)
+                action_btn.Text = "Copied Invite!"
+                task.wait(1)
+                action_btn.Text = "Join Discord"
+            elseif settings.SecondAction.Type == "Link" then
+                setclipboard(settings.SecondAction.Parameter)
+                action_btn.Text = "Copied Link!"
+                task.wait(1)
+                action_btn.Text = "Get Key"
+            end
+        end)
+    end
+
     -- Library element functions
         function library:window(properties)
             local cfg = { 
@@ -513,16 +658,20 @@
                 name = properties.name or properties.Name or "nebula";
                 game_name = properties.gameInfo or properties.game_info or properties.GameInfo or "Milenium for Counter-Strike: Global Offensive";
                 size = properties.size or properties.Size or dim2(0, 700, 0, 565);
+                
+                -- Key System Props
+                key_system_enabled = properties.KeySystem or false;
+                key_settings = properties.KeySettings or {};
+
                 selected_tab;
                 items = {};
-
                 tween;
             }
             
             library[ "items" ] = library:create( "ScreenGui" , {
                 Parent = coregui;
                 Name = "\0";
-                Enabled = true;
+                Enabled = false; -- Start disabled, wait for key or manual open
                 ZIndexBehavior = Enum.ZIndexBehavior.Global;
                 IgnoreGuiInset = true;
             });
@@ -535,11 +684,11 @@
                 IgnoreGuiInset = true;
             }); 
             
-            -- [UPDATED] Create Open Button GUI
+            -- Open Button GUI
             library[ "open_gui" ] = library:create( "ScreenGui" , {
                 Parent = coregui;
                 Name = "MileniumOpen";
-                Enabled = false; -- Start hidden
+                Enabled = false;
                 ZIndexBehavior = Enum.ZIndexBehavior.Global;
                 IgnoreGuiInset = true;
             });
@@ -555,6 +704,10 @@
                     BackgroundColor3 = rgb(14, 14, 16)
                 }); items[ "main" ].Position = dim2(0, items[ "main" ].AbsolutePosition.X, 0, items[ "main" ].AbsolutePosition.Y)
                 
+                -- Store original size for animation
+                local original_size = cfg.size
+                local original_pos = items["main"].Position
+
                 library:create( "UICorner" , {
                     Parent = items[ "main" ];
                     CornerRadius = dim(0, 10)
@@ -576,7 +729,7 @@
                     BackgroundColor3 = rgb(14, 14, 16)
                 });
 
-                -- [UPDATED] Close Button (X)
+                -- Close Button (X) with Animation
                 local close_button = library:create("TextButton", {
                     Parent = items["main"],
                     Text = "X",
@@ -597,7 +750,7 @@
                     library:tween(close_button, {TextColor3 = rgb(150, 150, 150)})
                 end)
 
-                -- [UPDATED] Open Button (Top Center)
+                -- Open Button (Top Center)
                 local open_button_frame = library:create("TextButton", {
                     Parent = library["open_gui"],
                     Text = "",
@@ -621,20 +774,64 @@
                     FontFace = fonts.font,
                     TextSize = 16
                 })
-                library.open_button_label = open_text -- Save reference for library:home()
+                library.open_button_label = open_text
 
-                -- [UPDATED] Logic for Close/Open
+                -- Animation Logic
                 close_button.MouseButton1Click:Connect(function()
+                    -- Close Animation: Shrink and Fade
+                    library:tween(items["main"], {
+                        Size = dim2(0, 0, 0, 0),
+                        Position = dim2(0.5, 0, 0.5, 0),
+                        BackgroundTransparency = 1
+                    }, Enum.EasingStyle.Back, 0.4)
+                    
+                    -- Fade out contents
+                    for _, v in pairs(items["main"]:GetDescendants()) do
+                        if v:IsA("GuiObject") then
+                            library:tween(v, {Transparency = 1}, Enum.EasingStyle.Quad, 0.2)
+                        end
+                    end
+
+                    task.wait(0.4)
                     library["items"].Enabled = false
                     library["open_gui"].Enabled = true
                 end)
 
                 open_button_frame.MouseButton1Click:Connect(function()
-                    library["items"].Enabled = true
                     library["open_gui"].Enabled = false
+                    library["items"].Enabled = true
+                    
+                    -- Reset properties for animation
+                    items["main"].Size = dim2(0, 0, 0, 0)
+                    items["main"].Position = dim2(0.5, 0, 0.5, 0)
+                    items["main"].BackgroundTransparency = 0
+
+                    -- Reset content transparency
+                    for _, v in pairs(items["main"]:GetDescendants()) do
+                        if v:IsA("GuiObject") and v.Name ~= "Shadow" then -- Don't reset shadow immediately or it looks weird
+                             -- This is a rough reset, ideally you'd store original transparencies, but for this style 0/1 works for most
+                             if v:IsA("TextLabel") or v:IsA("TextButton") then
+                                 library:tween(v, {TextTransparency = 0, BackgroundTransparency = 1}, Enum.EasingStyle.Quad, 0.1)
+                             elseif v:IsA("Frame") then
+                                 -- Handle specific frames if needed, mostly they are transparent containers
+                             end
+                        end
+                    end
+
+                    -- Open Animation: Expand
+                    library:tween(items["main"], {
+                        Size = original_size,
+                        Position = original_pos, -- Note: If dragged, this resets position. To fix, update original_pos in draggify
+                        BackgroundTransparency = 0
+                    }, Enum.EasingStyle.Elastic, 0.8)
                 end)
                 
-                -- Continue existing code
+                -- Update original_pos when dragging ends so animation opens at new spot
+                items["main"].InputEnded:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                        original_pos = items["main"].Position
+                    end
+                end)
                 
                 library:create( "Frame" , {
                     AnchorPoint = vec2(1, 0);
@@ -814,9 +1011,17 @@
 
             function cfg.toggle_menu(bool) 
                 library[ "items" ].Enabled = bool
-                -- Also handle the open gui state
                 library[ "open_gui" ].Enabled = not bool
             end 
+
+            -- Handle Key System Initialization
+            if cfg.key_system_enabled then
+                library:key_system(cfg.key_settings, function()
+                    library["items"].Enabled = true
+                end)
+            else
+                library["items"].Enabled = true
+            end
                 
             return setmetatable(cfg, library)
         end 
@@ -1150,10 +1355,7 @@
 
             return unpack(cfg.pages)
         end
-        -- Remaining UI components omitted for brevity, they remain unchanged from your provided script.
-        -- Just ensuring the script closes properly with the return.
-        
-        -- Copy pasting the rest of the functions from original to ensure completeness
+
         function library:seperator(properties)
             local cfg = {items = {}, name = properties.Name or properties.name or "General"}
 
