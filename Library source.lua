@@ -1,6 +1,6 @@
 
 --[[
-    Meno Library (Fixed Themes, Visibility, Real MS, Logo, Minimize)
+    Meno Library (Fixed Themes, Custom Minimize, Fixed Configs)
 ]]
 
 -- Variables 
@@ -76,15 +76,47 @@
         notifications = {notifs = {}},
         current_open = nil,
         open_button_label = nil,
-        authorized = false, -- Security Variable
+        authorized = false, 
     }
 
-    -- FIXED THEME LIST (Proper Colors for White Mode)
+    -- [2] FIXED THEME COLORS (Matching & Good Looking)
     local theme_list = {
-        {Name = "Purple", Accent = rgb(155, 150, 219), BG = rgb(14, 14, 16), Side = rgb(21, 21, 23), Item = rgb(33, 33, 35), Text = rgb(255, 255, 255), Outline = rgb(35, 35, 40)},
-        {Name = "Dark",   Accent = rgb(60, 60, 60),    BG = rgb(25, 25, 25), Side = rgb(30, 30, 30), Item = rgb(40, 40, 40), Text = rgb(255, 255, 255), Outline = rgb(60, 60, 60)},
-        {Name = "Void",   Accent = rgb(255, 255, 255), BG = rgb(0, 0, 0),    Side = rgb(10, 10, 10), Item = rgb(25, 25, 25), Text = rgb(255, 255, 255), Outline = rgb(80, 80, 80)}, 
-        {Name = "White",  Accent = rgb(0, 120, 215),   BG = rgb(245, 245, 245), Side = rgb(230, 230, 230), Item = rgb(255, 255, 255), Text = rgb(30, 30, 30), Outline = rgb(200, 200, 200)},
+        {
+            Name = "Purple", 
+            Accent = rgb(155, 150, 219), 
+            BG = rgb(18, 18, 22), 
+            Side = rgb(25, 25, 29), 
+            Item = rgb(35, 35, 39), 
+            Text = rgb(255, 255, 255), 
+            Outline = rgb(45, 45, 50)
+        },
+        {
+            Name = "Dark",   
+            Accent = rgb(90, 140, 255),    
+            BG = rgb(20, 20, 20), 
+            Side = rgb(28, 28, 28), 
+            Item = rgb(35, 35, 35), 
+            Text = rgb(255, 255, 255), 
+            Outline = rgb(50, 50, 50)
+        },
+        {
+            Name = "Void",   
+            Accent = rgb(255, 255, 255), 
+            BG = rgb(0, 0, 0),    
+            Side = rgb(8, 8, 8), 
+            Item = rgb(18, 18, 18), 
+            Text = rgb(255, 255, 255), 
+            Outline = rgb(60, 60, 60)
+        }, 
+        {
+            Name = "White",  
+            Accent = rgb(0, 120, 215),   
+            BG = rgb(250, 250, 250), 
+            Side = rgb(235, 235, 235), 
+            Item = rgb(255, 255, 255), 
+            Text = rgb(20, 20, 20), -- Black Text
+            Outline = rgb(200, 200, 200) -- Visible Borders
+        },
     }
     local current_theme_idx = 1
 
@@ -180,7 +212,6 @@
         function library:convert_enum(enum) local enum_parts = {}; for part in string.gmatch(enum, "[%w_]+") do insert(enum_parts, part) end; local enum_table = Enum; for i = 2, #enum_parts do enum_table = enum_table[enum_parts[i]] end; return enum_table end
         function library:round(number, float) local multiplier = 1 / (float or 1); return floor(number * multiplier + 0.5) / multiplier end 
 
-        -- FIXED: Apply Theme Immediately (Fixes invisible text on load)
         function library:apply_theme(instance, category, property) 
             if not themes.utility[category] then themes.utility[category] = {} end
             if not themes.utility[category][property] then themes.utility[category][property] = {} end
@@ -303,9 +334,9 @@
                 selected_tab;
                 items = {};
                 tween;
+                minimized = false; -- For minimize logic
             }
             
-            -- START DISABLED/NIL PARENT TO PREVENT BYPASS
             local init_parent = coregui
             if cfg.key_system_enabled then 
                 init_parent = nil
@@ -350,7 +381,6 @@
                 }); items[ "main" ].Position = dim2(0, items[ "main" ].AbsolutePosition.X, 0, items[ "main" ].AbsolutePosition.Y)
                 library:apply_theme(items["main"], "background", "BackgroundColor3") -- Theme applied
 
-                -- Store original size for animation
                 local original_size = cfg.size
                 local original_pos = items["main"].Position
 
@@ -377,7 +407,7 @@
                 });
                 library:apply_theme(items["side_frame"], "background", "BackgroundColor3") -- Theme applied
 
-                -- Close Button (X) with Animation
+                -- Close Button
                 local close_button = library:create("TextButton", {
                     Parent = items["main"],
                     Text = "X",
@@ -391,7 +421,7 @@
                     Name = "CloseButton"
                 })
 
-                -- ADDED: Minimize Button (-)
+                -- [1] FIXED: Minimize Button Logic
                 local min_button = library:create("TextButton", {
                     Parent = items["main"],
                     Text = "-",
@@ -405,10 +435,24 @@
                     Name = "MinButton"
                 })
 
-                -- Minimize Logic
                 min_button.MouseButton1Click:Connect(function()
-                    library["items"].Enabled = false
-                    library["open_gui"].Enabled = true
+                    cfg.minimized = not cfg.minimized
+                    if cfg.minimized then
+                        -- Shrink
+                        items.side_frame.Visible = false
+                        items.multi_holder.Visible = false
+                        items.shadow.Visible = false
+                        items.info.Visible = false -- Hide bottom bar
+                        library:tween(items.main, {Size = dim2(0, cfg.size.X.Offset, 0, 40)}) -- Header Height
+                    else
+                        -- Expand
+                        library:tween(items.main, {Size = cfg.size})
+                        task.wait(0.2)
+                        items.side_frame.Visible = true
+                        items.multi_holder.Visible = true
+                        items.shadow.Visible = true
+                        items.info.Visible = true
+                    end
                 end)
 
                 close_button.MouseEnter:Connect(function()
@@ -447,22 +491,13 @@
                 library:apply_theme(open_text, "text", "TextColor3") -- THEME
                 library.open_button_label = open_text
 
-                -- Animation Logic
+                -- Animation Logic (Close completely)
                 close_button.MouseButton1Click:Connect(function()
-                    -- Close Animation: Shrink and Fade
                     library:tween(items["main"], {
                         Size = dim2(0, 0, 0, 0),
                         Position = dim2(0.5, 0, 0.5, 0),
                         BackgroundTransparency = 1
                     }, Enum.EasingStyle.Back, 0.4)
-                    
-                    -- Fade out contents
-                    for _, v in pairs(items["main"]:GetDescendants()) do
-                        if v:IsA("GuiObject") then
-                            library:tween(v, {Transparency = 1}, Enum.EasingStyle.Quad, 0.2)
-                        end
-                    end
-
                     task.wait(0.4)
                     library["items"].Enabled = false
                     library["open_gui"].Enabled = true
@@ -471,24 +506,16 @@
                 open_button_frame.MouseButton1Click:Connect(function()
                     library["open_gui"].Enabled = false
                     library["items"].Enabled = true
-                    
-                    -- Reset properties for animation
                     items["main"].Size = dim2(0, 0, 0, 0)
                     items["main"].Position = dim2(0.5, 0, 0.5, 0)
                     items["main"].BackgroundTransparency = 0
-
-                    -- Reset content transparency
-                    for _, v in pairs(items["main"]:GetDescendants()) do
-                        if v:IsA("GuiObject") and v.Name ~= "Shadow" then -- Don't reset shadow immediately or it looks weird
-                             if v:IsA("TextLabel") or v:IsA("TextButton") then
-                                 library:tween(v, {TextTransparency = 0, BackgroundTransparency = 1}, Enum.EasingStyle.Quad, 0.1)
-                             elseif v:IsA("Frame") then
-                                 -- Handle specific frames if needed, mostly they are transparent containers
-                             end
-                        end
-                    end
-
-                    -- Open Animation: Expand
+                    -- Reset Minimize state on re-open
+                    cfg.minimized = false
+                    items.side_frame.Visible = true
+                    items.multi_holder.Visible = true
+                    items.shadow.Visible = true
+                    items.info.Visible = true
+                    
                     library:tween(items["main"], {
                         Size = original_size,
                         Position = original_pos, 
@@ -496,7 +523,6 @@
                     }, Enum.EasingStyle.Elastic, 0.8)
                 end)
                 
-                -- Update original_pos when dragging ends so animation opens at new spot
                 items["main"].InputEnded:Connect(function(input)
                     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
                         original_pos = items["main"].Position
@@ -580,6 +606,7 @@
                     BackgroundColor3 = rgb(255, 255, 255)
                 }); library:apply_theme(items[ "title" ], "accent", "TextColor3");
                 
+                -- Theme Switcher
                 title_btn.MouseButton1Click:Connect(function()
                     current_theme_idx = current_theme_idx + 1
                     if current_theme_idx > #theme_list then current_theme_idx = 1 end
@@ -696,7 +723,7 @@
                     BackgroundColor3 = rgb(255, 255, 255)
                 }); 
                 
-                -- ADDED: Live FPS/Ping Watermark
+                -- [3] ADDED: Live FPS/Ping Watermark (Bottom Bar)
                 items[ "other_info" ] = library:create( "TextLabel" , {
                     Parent = items[ "info" ];
                     RichText = true;
@@ -714,9 +741,25 @@
                     FontFace = fonts.font;
                     TextSize = 14;
                     BackgroundColor3 = rgb(255, 255, 255)
-                }); library:apply_theme(items[ "other_info" ], "accent", "TextColor3");        
+                }); library:apply_theme(items[ "other_info" ], "accent", "TextColor3");
+                
+                -- Extra Title Label for Minimized Mode
+                items.min_title = library:create("TextLabel", {
+                    Parent = items.main,
+                    RichText = true,
+                    BackgroundTransparency = 1,
+                    Text = "",
+                    Size = dim2(1, -80, 1, 0), -- Leave room for buttons
+                    Position = dim2(0, 10, 0, 0),
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    TextColor3 = themes.preset.text,
+                    FontFace = fonts.font,
+                    TextSize = 16,
+                    Visible = false -- Hidden by default
+                })
+                library:apply_theme(items.min_title, "text", "TextColor3")
 
-                -- Live Watermark Update
+                -- Live Watermark Logic
                 run.RenderStepped:Connect(function(dt)
                     if not items.main.Visible then return end
                     local fps = math.floor(1/dt)
@@ -724,6 +767,7 @@
                     local c = themes.preset.accent
                     local col_str = string.format("rgb(%d,%d,%d)", c.R*255, c.G*255, c.B*255)
                     
+                    -- Build the stats string
                     local str = ""
                     if cfg.watermark == "FPS" or cfg.watermark == "Both" then
                         str = str .. string.format('<font color="%s">%d</font> FPS', col_str, fps)
@@ -732,7 +776,18 @@
                     if cfg.watermark == "MS" or cfg.watermark == "Both" then
                         str = str .. string.format('<font color="%s">%d</font> MS', col_str, ping)
                     end
-                    items["other_info"].Text = str .. '  <font color="rgb(72, 72, 73)">' .. cfg.name .. '</font>'
+
+                    if cfg.minimized then
+                        -- If minimized, show stats in the Main frame
+                        items.title.Visible = false
+                        items.min_title.Visible = true
+                        items.min_title.Text = cfg.name .. "  |  " .. str
+                    else
+                        -- If maximized, show stats in bottom bar
+                        items.title.Visible = true
+                        items.min_title.Visible = false
+                        items.other_info.Text = str .. '  <font color="rgb(72, 72, 73)">' .. cfg.name .. '</font>'
+                    end
                 end)
             end 
 
@@ -2962,8 +3017,7 @@
                     TextColor3 = rgb(72, 72, 72);
                     BorderColor3 = rgb(0, 0, 0);
                     Position = dim2(1, 0, 0, 0);
-                    Size = dim2(1, -4, 0, 30);
-                    BackgroundColor3 = rgb(33, 33, 35)
+                    Size = dim2(1, -4, 0, 30)
                 }); 
                 library:apply_theme(items["input"], "item", "BackgroundColor3")
 
@@ -3674,3 +3728,4 @@
 -- 
 
 return library
+```
