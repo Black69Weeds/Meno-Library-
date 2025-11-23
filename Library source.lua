@@ -1,6 +1,6 @@
-
 --[[
-    Meno Library (Customized & Fixed)
+  
+    Meno Library (Fixed & Customized)
 ]]
 
 -- Variables 
@@ -82,27 +82,27 @@
     local themes = {
         preset = {
             accent = rgb(155, 150, 219),
+            background = rgb(14, 14, 16),
+            sidebar = rgb(21, 21, 23),
+            item = rgb(33, 33, 35),
+            text = rgb(255, 255, 255)
         }, 
 
         utility = {
-            accent = {
-                BackgroundColor3 = {}, 	
-                TextColor3 = {}, 
-                ImageColor3 = {}, 
-                ScrollBarImageColor3 = {} 
-            },
+            accent = { BackgroundColor3 = {}, TextColor3 = {}, ImageColor3 = {}, ScrollBarImageColor3 = {} },
+            background = { BackgroundColor3 = {} },
+            sidebar = { BackgroundColor3 = {} },
+            item = { BackgroundColor3 = {} },
+            text = { TextColor3 = {} }
         }
     }
     
-    -- Theme List for Changer
+    -- Theme List for Changer (Full Theme Support)
     local theme_list = {
-        {Name = "Purple", Color = rgb(155, 150, 219)},
-        {Name = "Red",    Color = rgb(255, 60, 60)},
-        {Name = "Blue",   Color = rgb(60, 100, 255)},
-        {Name = "Green",  Color = rgb(60, 255, 100)},
-        {Name = "Dark",   Color = rgb(45, 45, 50)},
-        {Name = "Black",  Color = rgb(0, 0, 0)},
-        {Name = "White",  Color = rgb(255, 255, 255)},
+        {Name = "Purple", Accent = rgb(155, 150, 219), BG = rgb(14, 14, 16), Side = rgb(21, 21, 23), Item = rgb(33, 33, 35), Text = rgb(255, 255, 255)},
+        {Name = "Dark",   Accent = rgb(60, 60, 60),    BG = rgb(25, 25, 25), Side = rgb(30, 30, 30), Item = rgb(40, 40, 40), Text = rgb(255, 255, 255)},
+        {Name = "Black",  Accent = rgb(255, 255, 255), BG = rgb(0, 0, 0),    Side = rgb(10, 10, 10), Item = rgb(20, 20, 20), Text = rgb(255, 255, 255)}, -- High Contrast
+        {Name = "White",  Accent = rgb(0, 120, 215),   BG = rgb(240, 240, 240), Side = rgb(220, 220, 220), Item = rgb(255, 255, 255), Text = rgb(20, 20, 20)},
     }
     local current_theme_idx = 1
 
@@ -441,16 +441,22 @@
         end 
 
         function library:apply_theme(instance, theme, property) 
-            insert(themes.utility[theme][property], instance)
+            if themes.utility[theme] and themes.utility[theme][property] then
+                insert(themes.utility[theme][property], instance)
+                -- Apply immediately
+                if themes.preset[theme] then
+                    instance[property] = themes.preset[theme]
+                end
+            end
         end
 
-        function library:update_theme(theme, color)
-            for _, property in themes.utility[theme] do 
+        function library:update_theme(category, color)
+            themes.preset[category] = color
+            for _, property in themes.utility[category] do 
                 for m, object in property do 
                     object[_] = color 
                 end 
             end 
-            themes.preset[theme] = color 
         end 
 
         function library:connection(signal, callback)
@@ -712,7 +718,8 @@
                 name = properties.name or properties.Name or "nebula";
                 game_name = properties.gameInfo or properties.game_info or properties.GameInfo or "Milenium for Counter-Strike: Global Offensive";
                 size = properties.size or properties.Size or dim2(0, 700, 0, 565);
-                logo = properties.logo or properties.Logo or nil; -- Logo support added
+                logo = properties.logo or properties.Logo or nil; -- ADDED: Logo
+                watermark = properties.Watermark or "Both"; -- ADDED: Watermark Settings
 
                 -- Key System Props
                 key_system_enabled = properties.KeySystem or false;
@@ -766,7 +773,8 @@
                     BorderSizePixel = 0;
                     BackgroundColor3 = rgb(14, 14, 16)
                 }); items[ "main" ].Position = dim2(0, items[ "main" ].AbsolutePosition.X, 0, items[ "main" ].AbsolutePosition.Y)
-                
+                library:apply_theme(items["main"], "background", "BackgroundColor3") -- Theme applied
+
                 -- Store original size for animation
                 local original_size = cfg.size
                 local original_pos = items["main"].Position
@@ -791,6 +799,7 @@
                     BorderSizePixel = 0;
                     BackgroundColor3 = rgb(14, 14, 16)
                 });
+                library:apply_theme(items["side_frame"], "background", "BackgroundColor3") -- Theme applied
 
                 -- Close Button (X) with Animation
                 local close_button = library:create("TextButton", {
@@ -805,6 +814,25 @@
                     TextSize = 18,
                     Name = "CloseButton"
                 })
+
+                -- ADDED: Minimize Button (-)
+                local min_button = library:create("TextButton", {
+                    Parent = items["main"],
+                    Text = "-",
+                    FontFace = fonts.font,
+                    TextColor3 = rgb(150, 150, 150),
+                    BackgroundTransparency = 1,
+                    Size = dim2(0, 30, 0, 30),
+                    Position = dim2(1, -35, 0, 5),
+                    AnchorPoint = vec2(1, 0),
+                    TextSize = 24,
+                    Name = "MinButton"
+                })
+
+                min_button.MouseButton1Click:Connect(function()
+                    library["items"].Enabled = false
+                    library["open_gui"].Enabled = true
+                end)
 
                 close_button.MouseEnter:Connect(function()
                     library:tween(close_button, {TextColor3 = rgb(255, 50, 50)})
@@ -824,9 +852,11 @@
                     Size = dim2(0, 120, 0, 35),
                     BorderSizePixel = 0
                 })
+                library:apply_theme(open_button_frame, "background", "BackgroundColor3")
                 
                 library:create("UICorner", {Parent = open_button_frame, CornerRadius = dim(0, 6)})
-                library:create("UIStroke", {Parent = open_button_frame, Color = themes.preset.accent, Thickness = 1.5})
+                local ob_stroke = library:create("UIStroke", {Parent = open_button_frame, Color = themes.preset.accent, Thickness = 1.5})
+                library:apply_theme(ob_stroke, "accent", "Color")
                 
                 local open_text = library:create("TextLabel", {
                     Parent = open_button_frame,
@@ -837,6 +867,7 @@
                     FontFace = fonts.font,
                     TextSize = 16
                 })
+                library:apply_theme(open_text, "text", "TextColor3")
                 library.open_button_label = open_text
 
                 -- Animation Logic
@@ -941,10 +972,10 @@
                      ZIndex = 2
                 })
 
-                -- LOGO SUPPORT IMPLEMENTATION
+                -- ADDED: LOGO Logic
                 local title_padding = 0
                 if cfg.logo then
-                    local logo_img = library:create("ImageLabel", {
+                    library:create("ImageLabel", {
                         Parent = title_btn,
                         Image = cfg.logo,
                         Size = dim2(0, 40, 0, 40),
@@ -952,7 +983,7 @@
                         AnchorPoint = vec2(0, 0.5),
                         BackgroundTransparency = 1
                     })
-                    title_padding = 50 -- Push text to the right
+                    title_padding = 50
                 end
                 
                 items[ "title" ] = library:create( "TextLabel" , {
@@ -968,7 +999,7 @@
                     TextColor3 = themes.preset.accent;
                     BorderSizePixel = 0;
                     RichText = true;
-                    TextSize = 26;
+                    TextSize = 30;
                     BackgroundColor3 = rgb(255, 255, 255)
                 }); library:apply_theme(items[ "title" ], "accent", "TextColor3");
                 
@@ -977,7 +1008,12 @@
                     if current_theme_idx > #theme_list then current_theme_idx = 1 end
                     
                     local th = theme_list[current_theme_idx]
-                    library:update_theme("accent", th.Color)
+                    -- Full Theme Update Logic
+                    library:update_theme("accent", th.Accent)
+                    library:update_theme("background", th.BG)
+                    library:update_theme("sidebar", th.Side)
+                    library:update_theme("item", th.Item)
+                    library:update_theme("text", th.Text)
                     notifications:create_notification({name = "Theme Changed", info = "Active: " .. th.Name})
                 end)
                 
@@ -1047,6 +1083,7 @@
                     BorderSizePixel = 0;
                     BackgroundColor3 = rgb(23, 23, 25)
                 });
+                library:apply_theme(items["info"], "sidebar", "BackgroundColor3")
                 
                 library:create( "UICorner" , {
                     Parent = items[ "info" ];
@@ -1061,6 +1098,7 @@
                     BorderSizePixel = 0;
                     BackgroundColor3 = rgb(23, 23, 25)
                 });
+                library:apply_theme(items["grey_fill"], "sidebar", "BackgroundColor3")
                 
                 items[ "game" ] = library:create( "TextLabel" , {
                     FontFace = fonts.font;
@@ -1080,13 +1118,14 @@
                     BackgroundColor3 = rgb(255, 255, 255)
                 }); 
                 
+                -- ADDED: Live FPS/Ping Watermark
                 items[ "other_info" ] = library:create( "TextLabel" , {
                     Parent = items[ "info" ];
                     RichText = true;
                     Name = "\0";
                     TextColor3 = themes.preset.accent;
                     BorderColor3 = rgb(0, 0, 0);
-                    Text = '<font color="rgb(72, 72, 73)">32 days left, </font>' .. cfg.name .. cfg.suffix;
+                    Text = "";
                     Size = dim2(1, 0, 0, 0);
                     Position = dim2(0, -10, 0.5, -1);
                     AnchorPoint = vec2(0, 0.5);
@@ -1097,7 +1136,25 @@
                     FontFace = fonts.font;
                     TextSize = 14;
                     BackgroundColor3 = rgb(255, 255, 255)
-                }); library:apply_theme(items[ "other_info" ], "accent", "TextColor3");        
+                }); library:apply_theme(items[ "other_info" ], "accent", "TextColor3");
+
+                run.RenderStepped:Connect(function(dt)
+                    if not items.main.Visible then return end
+                    local fps = math.floor(1/dt)
+                    local ping = math.floor(stats.Network.ServerStatsItem["Data Ping"]:GetValue())
+                    local col = themes.preset.accent
+                    local col_str = string.format("rgb(%d,%d,%d)", col.R*255, col.G*255, col.B*255)
+                    
+                    local str = ""
+                    if cfg.watermark == "FPS" or cfg.watermark == "Both" then
+                        str = str .. string.format('<font color="%s">%d</font> FPS', col_str, fps)
+                    end
+                    if cfg.watermark == "Both" then str = str .. "  |  " end
+                    if cfg.watermark == "MS" or cfg.watermark == "Both" then
+                        str = str .. string.format('<font color="%s">%d</font> MS', col_str, ping)
+                    end
+                    items["other_info"].Text = str .. '  <font color="rgb(72, 72, 73)">' .. cfg.name .. '</font>'
+                end)
             end 
 
             do -- Other
@@ -1271,6 +1328,7 @@
                                     TextSize = 16;
                                     BackgroundColor3 = rgb(25, 25, 29)
                                 });
+                                library:apply_theme(multi_items["button"], "item", "BackgroundColor3")
                                 
                                 multi_items[ "name" ] = library:create( "TextLabel" , {
                                     FontFace = fonts.font;
@@ -1573,6 +1631,7 @@
                     BorderSizePixel = 0;
                     BackgroundColor3 = rgb(25, 25, 29)
                 });
+                library:apply_theme(items["outline"], "background", "BackgroundColor3")
 
                 library:create( "UICorner" , {
                     Parent = items[ "outline" ];
@@ -1588,6 +1647,7 @@
                     BorderSizePixel = 0;
                     BackgroundColor3 = rgb(22, 22, 24)
                 });
+                library:apply_theme(items["inline"], "sidebar", "BackgroundColor3")
                 
                 library:create( "UICorner" , {
                     Parent = items[ "inline" ];
@@ -1647,6 +1707,7 @@
                     TextSize = 16;
                     BackgroundColor3 = rgb(19, 19, 21)
                 });
+                library:apply_theme(items["button"], "item", "BackgroundColor3")
                 
                 library:create( "UIStroke" , {
                     Color = rgb(23, 23, 29);
@@ -1690,6 +1751,7 @@
                     TextSize = 16;
                     BackgroundColor3 = rgb(255, 255, 255)
                 });
+                library:apply_theme(items["section_title"], "text", "TextColor3")
                 
                 library:create( "Frame" , {
                     AnchorPoint = vec2(0, 1);
@@ -1849,6 +1911,7 @@
                     TextSize = 16;
                     BackgroundColor3 = rgb(255, 255, 255)
                 });
+                library:apply_theme(items["name"], "text", "TextColor3")
 
                 if cfg.info then 
                     items[ "info" ] = library:create( "TextLabel" , {
@@ -1913,7 +1976,7 @@
                             BackgroundColor3 = rgb(67, 67, 68)
                         }); library:apply_theme(items[ "toggle_button" ], "accent", "BackgroundColor3");
                         
-                        -- Add UIStroke for better visibility
+                        -- ADDED: UIStroke for visibility
                         library:create("UIStroke", {Parent = items["toggle_button"], Color = rgb(60,60,60), Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border})
 
                         library:create( "UICorner" , {
@@ -2118,6 +2181,7 @@
                     TextSize = 16;
                     BackgroundColor3 = rgb(255, 255, 255)
                 });
+                library:apply_theme(items["name"], "text", "TextColor3")
                 
                 if cfg.info then 
                     items[ "info" ] = library:create( "TextLabel" , {
@@ -2178,6 +2242,7 @@
                     TextSize = 14;
                     BackgroundColor3 = rgb(33, 33, 35)
                 });
+                library:apply_theme(items["slider"], "item", "BackgroundColor3")
                 
                 library:create( "UICorner" , {
                     Parent = items[ "slider" ];
@@ -2193,13 +2258,8 @@
                     BackgroundColor3 = themes.preset.accent
                 });  library:apply_theme(items[ "fill" ], "accent", "BackgroundColor3");
                 
-                -- Add a border to the slider fill so it's visible on black backgrounds
-                library:create("UIStroke", {
-                     Parent = items["fill"],
-                     Color = rgb(80, 80, 80),
-                     Thickness = 1,
-                     ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-                })
+                -- ADDED: UIStroke for Slider Fill
+                library:create("UIStroke", {Parent = items["fill"], Color = rgb(80,80,80), Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border})
 
                 library:create( "UICorner" , {
                     Parent = items[ "fill" ];
@@ -2243,6 +2303,7 @@
                     TextSize = 16;
                     BackgroundColor3 = rgb(255, 255, 255)
                 });
+                library:apply_theme(items["value"], "text", "TextColor3")
                 
                 library:create( "UIPadding" , {
                     Parent = items[ "value" ];
@@ -2356,6 +2417,7 @@
                         TextSize = 16;
                         BackgroundColor3 = rgb(255, 255, 255)
                     });
+                    library:apply_theme(items["name"], "text", "TextColor3")
                     
                     if cfg.info then 
                         items[ "info" ] = library:create( "TextLabel" , {
@@ -2416,6 +2478,7 @@
                         TextSize = 14;
                         BackgroundColor3 = rgb(33, 33, 35)
                     });
+                    library:apply_theme(items["dropdown"], "item", "BackgroundColor3")
                     
                     library:create( "UICorner" , {
                         Parent = items[ "dropdown" ];
@@ -2483,6 +2546,7 @@
                         BackgroundColor3 = rgb(33, 33, 35);
                         ZIndex = 10;
                     });
+                    library:apply_theme(items["outline"], "item", "BackgroundColor3")
                     
                     library:create( "UIPadding" , {
                         PaddingBottom = dim(0, 6);
@@ -2665,6 +2729,7 @@
                     TextSize = 16;
                     BackgroundColor3 = rgb(255, 255, 255)
                 });
+                library:apply_theme(items["name"], "text", "TextColor3")
 
                 if cfg.info then 
                     items[ "info" ] = library:create( "TextLabel" , {
@@ -2773,6 +2838,7 @@
                         BackgroundColor3 = rgb(54, 31, 184)
                     });
                     
+                    -- ADDED: UIStroke for visibility
                     library:create("UIStroke", {Parent = items["colorpicker"], Color = rgb(60,60,60), Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border})
 
                     library:create( "UICorner" , {
@@ -3265,6 +3331,7 @@
                     TextSize = 16;
                     BackgroundColor3 = rgb(255, 255, 255)
                 });
+                library:apply_theme(items["name"], "text", "TextColor3")
                 
                 library:create( "UIPadding" , {
                     Parent = items[ "name" ];
@@ -3308,6 +3375,7 @@
                     Size = dim2(1, -4, 0, 30);
                     BackgroundColor3 = rgb(33, 33, 35)
                 }); 
+                library:apply_theme(items["input"], "item", "BackgroundColor3")
 
                 library:create( "UICorner" , {
                     Parent = items[ "input" ];
@@ -3406,6 +3474,7 @@
                         TextSize = 16;
                         BackgroundColor3 = rgb(255, 255, 255)
                     });
+                    library:apply_theme(items["name"], "text", "TextColor3")
                     
                     library:create( "UIPadding" , {
                         Parent = items[ "name" ];
@@ -3447,6 +3516,7 @@
                         TextSize = 14;
                         BackgroundColor3 = rgb(33, 33, 35)
                     });
+                    library:apply_theme(items["keybind_holder"], "item", "BackgroundColor3")
                     
                     library:create( "UICorner" , {
                         Parent = items[ "keybind_holder" ];
@@ -3499,6 +3569,7 @@
                         BorderSizePixel = 0;
                         BackgroundColor3 = rgb(22, 22, 24)
                     });
+                    library:apply_theme(items["inline"], "item", "BackgroundColor3")
                     
                     library:create( "UIPadding" , {
                         PaddingBottom = dim(0, 6);
@@ -3720,6 +3791,7 @@
                     TextSize = 14;
                     BackgroundColor3 = rgb(33, 33, 35)
                 });
+                library:apply_theme(items["button"], "item", "BackgroundColor3")
                 
                 library:create( "UICorner" , {
                     Parent = items[ "button" ];
@@ -3739,7 +3811,7 @@
                     AutomaticSize = Enum.AutomaticSize.XY;
                     TextSize = 14;
                     BackgroundColor3 = rgb(255, 255, 255)
-                }); library:apply_theme(items[ "name" ], "accent", "BackgroundColor3");                            
+                }); library:apply_theme(items[ "name" ], "text", "TextColor3");                            
             end 
 
             items[ "button" ].MouseButton1Click:Connect(function()
@@ -3781,6 +3853,7 @@
                     BorderSizePixel = 0;
                     BackgroundColor3 = rgb(22, 22, 24)
                 });
+                library:apply_theme(items["inline"], "item", "BackgroundColor3")
                 
                 library:create( "UICorner" , {
                     Parent = items[ "inline" ];
@@ -3886,8 +3959,6 @@
                 for _,option in cfg.data_store do 
                     option:Destroy()
                 end
-                
-                cfg.data_store = {}
 
                 for _, option_data in options_to_refresh do -- haha u skids no next >_<
                     local button = library:create( "TextButton" , {
@@ -3905,6 +3976,7 @@
                         TextSize = 14;
                         BackgroundColor3 = rgb(33, 33, 35)
                     }); cfg.data_store[#cfg.data_store + 1] = button;
+                    library:apply_theme(button, "item", "BackgroundColor3")
 
                     local name = library:create( "TextLabel" , {
                         FontFace = fonts.font;
@@ -3920,6 +3992,7 @@
                         TextSize = 14;
                         BackgroundColor3 = rgb(255, 255, 255)
                     });
+                    library:apply_theme(name, "text", "TextColor3")
                     
                     library:create( "UICorner" , {
                         Parent = button;
@@ -3973,6 +4046,7 @@
             local section = column:section({name = "Settings", side = "right", size = 1, default = true, icon = "rbxassetid://129380150574313"})
             section:textbox({name = "Config name:", flag = "config_name_text"})
             
+            -- FIXED: Save/Load/Delete Logic
             section:button({name = "Save", callback = function() 
                 local name = flags["config_name_text"] or flags["config_name_list"]
                 if not name or name == "" then return end
@@ -3984,9 +4058,8 @@
             section:button({name = "Load", callback = function() 
                 local name = flags["config_name_list"]
                 if not name then return end
-                local path = library.directory .. "/configs/" .. name .. ".cfg"
-                if isfile(path) then
-                    library:load_config(readfile(path))  
+                if isfile(library.directory .. "/configs/" .. name .. ".cfg") then
+                    library:load_config(readfile(library.directory .. "/configs/" .. name .. ".cfg"))  
                     library:update_config_list() 
                     notifications:create_notification({name = "Configs", info = "Loaded config:\n" .. name}) 
                 end
@@ -3995,13 +4068,10 @@
             section:button({name = "Delete", callback = function() 
                 local name = flags["config_name_list"]
                 if not name then return end
-                local path = library.directory .. "/configs/" .. name .. ".cfg"
-                if isfile(path) then
-                    delfile(path)  
+                if isfile(library.directory .. "/configs/" .. name .. ".cfg") then
+                    delfile(library.directory .. "/configs/" .. name .. ".cfg")  
                     library:update_config_list() 
                     notifications:create_notification({name = "Configs", info = "Deleted config:\n" .. name}) 
-                else
-                    notifications:create_notification({name = "Configs", info = "File not found:\n" .. name}) 
                 end
             end})
             
@@ -4066,6 +4136,7 @@
                     AutomaticSize = Enum.AutomaticSize.Y;
                     BackgroundColor3 = rgb(14, 14, 16)
                 });
+                library:apply_theme(items["notification"], "background", "BackgroundColor3")
                 
                 library:create( "UIStroke" , {
                     Color = rgb(23, 23, 29);
@@ -4088,6 +4159,7 @@
                     TextSize = 14;
                     BackgroundColor3 = rgb(255, 255, 255)
                 });
+                library:apply_theme(items["title"], "text", "TextColor3")
                 
                 library:create( "UICorner" , {
                     Parent = items[ "notification" ];
