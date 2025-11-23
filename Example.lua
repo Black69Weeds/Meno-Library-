@@ -15,13 +15,13 @@ local library = loadstring(game:HttpGet(
 
 --// MAIN WINDOW
 local window = library:window({
-    name     = "nebula",
-    suffix   = "tech",
+    name     = "GAY",
+    suffix   = "MAX",
     gameInfo = "Milenium for Counter-Strike: Global Offensive",
 })
 
 window:seperator({ name = "General" })
-meno:home(SyzenHub)
+library:home(SYZENHUB)
 ---------------------------------------------------------------------
 --// TAB EXAMPLE 1 – WITH SUB TABS + COLUMNS
 ---------------------------------------------------------------------
