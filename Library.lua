@@ -1,6 +1,6 @@
 
 --[[
-    Meno Library (Fixed)
+    Meno Library
 ]]
 
 -- Variables 
@@ -761,8 +761,7 @@
                     BorderColor3 = rgb(0, 0, 0);
                     BorderSizePixel = 0;
                     BackgroundColor3 = rgb(14, 14, 16)
-                }); 
-                -- FIXED: Removed line that reset position to 0,0 when parent is nil
+                }); items[ "main" ].Position = dim2(0, items[ "main" ].AbsolutePosition.X, 0, items[ "main" ].AbsolutePosition.Y)
                 
                 -- Store original size for animation
                 local original_size = cfg.size
@@ -2779,7 +2778,7 @@
                         BorderColor3 = rgb(0, 0, 0);
                         Size = dim2(0, 166, 0, 197);
                         BorderSizePixel = 0;
-                        Visible = true;
+                        Visible = false; -- FIX: Set to false by default
                         BackgroundColor3 = rgb(25, 25, 29)
                     });
 
@@ -3051,12 +3050,24 @@
             end;
 
             function cfg.set_visible(bool)
+                if bool then
+                    items[ "colorpicker_holder" ].Visible = true
+                end
+                
                 items[ "colorpicker_fade" ].BackgroundTransparency = 0
                 items[ "colorpicker_holder" ].Parent = bool and library[ "items" ] or library[ "other" ]
                 items[ "colorpicker_holder" ].Position = dim_offset(items[ "colorpicker" ].AbsolutePosition.X, items[ "colorpicker" ].AbsolutePosition.Y + items[ "colorpicker" ].AbsoluteSize.Y + 45)
 
                 library:tween(items[ "colorpicker_fade" ], {BackgroundTransparency = 1}, Enum.EasingStyle.Quad, 0.4)
                 library:tween(items[ "colorpicker_holder" ], {Position = items[ "colorpicker_holder" ].Position + dim_offset(0, 20)}) -- p100 check
+                
+                if not bool then
+                     task.delay(0.4, function()
+                         if not cfg.open then
+                             items[ "colorpicker_holder" ].Visible = false
+                         end
+                     end)
+                end
                 
                 if not (self.sanity and library.current_open == self and self.open) then 
                     library:close_element(cfg)
