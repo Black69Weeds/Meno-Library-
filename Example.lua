@@ -2,17 +2,6 @@ local library = loadstring(game:HttpGet(
     "https://raw.githubusercontent.com/Black69Weeds/Meno-Library-/refs/heads/main/Library.lua"
 ))()
 
---[[
-    This UI uses a column-based system for creating sections.
-
-    - Each "column" is how many sections you can have side-by-side.
-    - You can have 1, 2, 3, 4, etc. columns with this library.
-    - There is a lot of customizability, which is why this library is popular.
-
-    NOTE: This example is just to showcase how to use:
-        window -> tab -> column -> section -> controls
-]]
-
 --// MAIN WINDOW
 local window = library:window({
     name     = "GAY",
@@ -21,6 +10,9 @@ local window = library:window({
 })
 
 window:seperator({ name = "General" })
+
+-- set the small home button name
+library:home("SYZENHUB")
 ---------------------------------------------------------------------
 --// TAB EXAMPLE 1 – WITH SUB TABS + COLUMNS
 ---------------------------------------------------------------------
@@ -410,8 +402,4 @@ for _, tab in { enemies4, teammates4, self_section4 } do
         }):colorpicker({})
     end
 end
-
-library:home(Meno)
-
-
 library:init_config(window)
