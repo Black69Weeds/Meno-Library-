@@ -12,7 +12,7 @@ local library = loadstring(game:HttpGet(
     NOTE: This example is just to showcase how to use:
         window -> tab -> column -> section -> controls
 ]]
-library:home(Meno)
+
 --// MAIN WINDOW
 local window = library:window({
     name     = "GAY",
@@ -411,21 +411,7 @@ for _, tab in { enemies4, teammates4, self_section4 } do
     end
 end
 
----------------------------------------------------------------------
---// OLD DOCUMENTATION (COMMENTED OUT)
----------------------------------------------------------------------
---[[
+library:home(Meno)
 
--- for i = 1, 5 do 
---     window:seperator({name = "General"})
---     local enemies, teammates, self_section = window:tab({name = "Players", tabs = {"Enemies", "Teammates", "Self"}})
---     ...
--- end
-
-]]
-
----------------------------------------------------------------------
---// INIT CONFIG (SAVE / LOAD SUPPORT)
----------------------------------------------------------------------
 
 library:init_config(window)
