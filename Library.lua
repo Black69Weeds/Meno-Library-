@@ -1,7 +1,5 @@
 --[[
-
     Meno Library
-    
 ]]
 
 -- Variables 
@@ -75,8 +73,9 @@
         config_flags = {},
         connections = {},   
         notifications = {notifs = {}},
-        current_open; 
-        open_button_label = nil;
+        current_open = nil,
+        open_button_label = nil,
+        authorized = false, -- Security Variable
     }
 
     local themes = {
@@ -93,6 +92,15 @@
             },
         }
     }
+    
+    -- Theme List for Changer
+    local theme_list = {
+        {Name = "Purple", Color = rgb(155, 150, 219)},
+        {Name = "Dark",   Color = rgb(45, 45, 50)},
+        {Name = "Black",  Color = rgb(0, 0, 0)},
+        {Name = "White",  Color = rgb(255, 255, 255)},
+    }
+    local current_theme_idx = 1
 
     local keys = {
         [Enum.KeyCode.LeftShift] = "LS",
@@ -432,14 +440,12 @@
 
         function library:update_theme(theme, color)
             for _, property in themes.utility[theme] do 
-
                 for m, object in property do 
-                    if object[_] == themes.preset[theme] then 
+                    -- if object[_] == themes.preset[theme] then  -- (Removed condition to force update on change)
                         object[_] = color 
-                    end 
+                    -- end 
                 end 
             end 
-
             themes.preset[theme] = color 
         end 
 
@@ -490,6 +496,10 @@
             if library[ "key_gui" ] then
                 library[ "key_gui" ]:Destroy()
             end
+            
+            if lighting:FindFirstChild("MileniumBlur") then
+                lighting.MileniumBlur:Destroy()
+            end
 
             for index, connection in library.connections do 
                 connection:Disconnect() 
@@ -506,8 +516,17 @@
         end
     --
     
-    -- Key System Function
+    -- KEY SYSTEM FUNCTION
     function library:key_system(settings, on_success)
+        library.authorized = false 
+
+        local blur = library:create("BlurEffect", {
+            Parent = lighting,
+            Size = 0,
+            Name = "MileniumBlur"
+        })
+        tween_service:Create(blur, TweenInfo.new(1), {Size = 18}):Play()
+
         local key_gui = library:create("ScreenGui", {
             Parent = coregui,
             Name = "MileniumKeySystem",
@@ -515,107 +534,127 @@
             IgnoreGuiInset = true
         })
         library["key_gui"] = key_gui
+        
+        local back_fade = library:create("Frame", {
+            Parent = key_gui,
+            Size = dim2(1,0,1,0),
+            BackgroundColor3 = rgb(0,0,0),
+            BackgroundTransparency = 0.4,
+            ZIndex = 0
+        })
 
         local main_frame = library:create("Frame", {
             Parent = key_gui,
-            Size = dim2(0, 400, 0, 250),
-            Position = dim2(0.5, -200, 0.5, -125),
-            BackgroundColor3 = rgb(14, 14, 16),
-            BorderSizePixel = 0
+            Size = dim2(0, 450, 0, 240),
+            Position = dim2(0.5, -225, 0.5, -120),
+            BackgroundColor3 = rgb(18, 18, 22),
+            BorderSizePixel = 0,
+            ClipsDescendants = true
         })
 
-        library:create("UICorner", {Parent = main_frame, CornerRadius = dim(0, 10)})
-        library:create("UIStroke", {Parent = main_frame, Color = rgb(23, 23, 29), ApplyStrokeMode = Enum.ApplyStrokeMode.Border})
-
-        -- Title
+        library:create("UICorner", {Parent = main_frame, CornerRadius = dim(0, 12)})
+        library:create("UIStroke", {Parent = main_frame, Color = rgb(35, 35, 40), ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Thickness = 1})
+        
+        -- Header
         library:create("TextLabel", {
             Parent = main_frame,
-            Text = settings.Title or "Key System",
+            Text = settings.Title or "Authentication",
             FontFace = fonts.font,
             TextColor3 = themes.preset.accent,
             TextSize = 24,
             Size = dim2(1, 0, 0, 40),
             BackgroundTransparency = 1,
-            Position = dim2(0, 0, 0, 10)
+            Position = dim2(0, 0, 0, 15)
         })
 
-        -- Subtitle
         library:create("TextLabel", {
             Parent = main_frame,
-            Text = settings.Subtitle or "Game Name",
+            Text = settings.Subtitle or "Enter your key to access the menu",
             FontFace = fonts.small,
-            TextColor3 = rgb(150, 150, 150),
-            TextSize = 16,
+            TextColor3 = rgb(140, 140, 140),
+            TextSize = 15,
             Size = dim2(1, 0, 0, 20),
             BackgroundTransparency = 1,
-            Position = dim2(0, 0, 0, 45)
+            Position = dim2(0, 0, 0, 48)
         })
 
-        -- Note
-        library:create("TextLabel", {
+        -- Input Container
+        local input_bg = library:create("Frame", {
             Parent = main_frame,
-            Text = settings.Note or "Join Discord for key",
-            FontFace = fonts.small,
-            TextColor3 = rgb(100, 100, 100),
-            TextSize = 14,
-            Size = dim2(1, 0, 0, 20),
-            BackgroundTransparency = 1,
-            Position = dim2(0, 0, 0, 70)
+            Size = dim2(0, 320, 0, 45),
+            Position = dim2(0.5, -160, 0.42, 0),
+            BackgroundColor3 = rgb(12, 12, 14)
         })
+        library:create("UICorner", {Parent = input_bg, CornerRadius = dim(0, 8)})
+        local input_stroke = library:create("UIStroke", {Parent = input_bg, Color = rgb(40, 40, 45), Thickness = 1})
 
-        -- Input
         local input_box = library:create("TextBox", {
-            Parent = main_frame,
-            Size = dim2(0, 300, 0, 40),
-            Position = dim2(0.5, -150, 0.5, 0),
-            BackgroundColor3 = rgb(25, 25, 29),
+            Parent = input_bg,
+            Size = dim2(1, -20, 1, 0),
+            Position = dim2(0, 10, 0, 0),
+            BackgroundTransparency = 1,
             TextColor3 = rgb(255, 255, 255),
-            PlaceholderText = "Enter Key Here...",
+            PlaceholderText = "Paste Key...",
+            PlaceholderColor3 = rgb(80, 80, 80),
             FontFace = fonts.small,
             TextSize = 16,
             BorderSizePixel = 0
         })
-        library:create("UICorner", {Parent = input_box, CornerRadius = dim(0, 6)})
 
         -- Check Button
         local check_btn = library:create("TextButton", {
             Parent = main_frame,
-            Size = dim2(0, 140, 0, 35),
-            Position = dim2(0.5, -150, 0.8, 0),
+            Size = dim2(0, 150, 0, 40),
+            Position = dim2(0.5, -165, 0.75, 0),
             BackgroundColor3 = themes.preset.accent,
-            Text = "Check Key",
+            Text = "Submit Key",
             TextColor3 = rgb(255, 255, 255),
             FontFace = fonts.font,
-            TextSize = 16,
+            TextSize = 15,
             AutoButtonColor = false
         })
-        library:create("UICorner", {Parent = check_btn, CornerRadius = dim(0, 6)})
+        library:create("UICorner", {Parent = check_btn, CornerRadius = dim(0, 8)})
 
-        -- Second Action Button
-        local action_btn = library:create("TextButton", {
+        -- Link Button
+        local link_btn = library:create("TextButton", {
             Parent = main_frame,
-            Size = dim2(0, 140, 0, 35),
-            Position = dim2(0.5, 10, 0.8, 0),
-            BackgroundColor3 = rgb(40, 40, 45),
-            Text = settings.SecondAction.Type == "Discord" and "Join Discord" or "Get Key",
-            TextColor3 = rgb(255, 255, 255),
+            Size = dim2(0, 150, 0, 40),
+            Position = dim2(0.5, 15, 0.75, 0),
+            BackgroundColor3 = rgb(35, 35, 40),
+            Text = "Get Key Link",
+            TextColor3 = rgb(200, 200, 200),
             FontFace = fonts.font,
-            TextSize = 16,
+            TextSize = 15,
             AutoButtonColor = false
         })
-        library:create("UICorner", {Parent = action_btn, CornerRadius = dim(0, 6)})
+        library:create("UICorner", {Parent = link_btn, CornerRadius = dim(0, 8)})
 
-        -- Logic
+        -- Shake Logic
+        local function shake()
+            local original = main_frame.Position
+            local x = original.X.Scale
+            local y = original.Y.Scale
+            local x_off = original.X.Offset
+            local y_off = original.Y.Offset
+            
+            for i = 1, 5 do
+                main_frame.Position = dim2(x, x_off + (i%2==0 and -5 or 5), y, y_off)
+                task.wait(0.04)
+            end
+            main_frame.Position = original
+        end
+
         local key_file = "MileniumKey_" .. game.PlaceId .. ".txt"
-        
-        -- Auto Load
         if settings.SaveKey and isfile(key_file) then
-            local saved_key = readfile(key_file)
-            if find(settings.Key, saved_key) then
+             local saved = readfile(key_file)
+             if find(settings.Key, saved) then
+                library.authorized = true
+                tween_service:Create(blur, TweenInfo.new(0.5), {Size = 0}):Play()
                 key_gui:Destroy()
+                blur:Destroy()
                 on_success()
                 return
-            end
+             end
         end
 
         check_btn.MouseButton1Click:Connect(function()
@@ -623,33 +662,44 @@
                 if settings.SaveKey then
                     writefile(key_file, input_box.Text)
                 end
+                library.authorized = true
                 
                 -- Success Animation
-                library:tween(main_frame, {Size = dim2(0, 0, 0, 0), BackgroundTransparency = 1}, Enum.EasingStyle.Back, 0.5)
+                check_btn.BackgroundColor3 = rgb(50, 200, 100)
+                check_btn.Text = "Access Granted"
+                input_stroke.Color = rgb(50, 200, 100)
+                
                 task.wait(0.5)
+                tween_service:Create(main_frame, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Size = dim2(0,0,0,0), BackgroundTransparency = 1}):Play()
+                tween_service:Create(blur, TweenInfo.new(0.5), {Size = 0}):Play()
+                task.wait(0.5)
+                
                 key_gui:Destroy()
+                blur:Destroy()
                 on_success()
             else
-                input_box.Text = "Incorrect Key!"
+                -- Fail Animation
+                check_btn.BackgroundColor3 = rgb(200, 50, 50)
+                check_btn.Text = "Invalid Key"
+                input_stroke.Color = rgb(200, 50, 50)
+                shake()
                 task.wait(1)
-                input_box.Text = ""
+                check_btn.BackgroundColor3 = themes.preset.accent
+                check_btn.Text = "Submit Key"
+                input_stroke.Color = rgb(40, 40, 45)
             end
         end)
-
-        action_btn.MouseButton1Click:Connect(function()
-            if settings.SecondAction.Type == "Discord" then
-                setclipboard("https://discord.gg/" .. settings.SecondAction.Parameter)
-                action_btn.Text = "Copied Invite!"
-                task.wait(1)
-                action_btn.Text = "Join Discord"
-            elseif settings.SecondAction.Type == "Link" then
+        
+        link_btn.MouseButton1Click:Connect(function()
+            if settings.SecondAction.Type == "Link" then
                 setclipboard(settings.SecondAction.Parameter)
-                action_btn.Text = "Copied Link!"
+                link_btn.Text = "Copied to Clipboard!"
                 task.wait(1)
-                action_btn.Text = "Get Key"
+                link_btn.Text = "Get Key Link"
             end
         end)
     end
+
 
     -- Library element functions
         function library:window(properties)
@@ -668,25 +718,33 @@
                 tween;
             }
             
+            -- START DISABLED/NIL PARENT TO PREVENT BYPASS
+            local init_parent = coregui
+            if cfg.key_system_enabled then 
+                init_parent = nil
+            else
+                library.authorized = true 
+            end
+
             library[ "items" ] = library:create( "ScreenGui" , {
-                Parent = coregui;
-                Name = "\0";
-                Enabled = false; -- Start disabled, wait for key or manual open
+                Parent = init_parent;
+                Name = "MileniumMain";
+                Enabled = not cfg.key_system_enabled; 
                 ZIndexBehavior = Enum.ZIndexBehavior.Global;
                 IgnoreGuiInset = true;
             });
             
             library[ "other" ] = library:create( "ScreenGui" , {
-                Parent = coregui;
+                Parent = init_parent;
                 Name = "\0";
-                Enabled = false;
+                Enabled = true;
                 ZIndexBehavior = Enum.ZIndexBehavior.Sibling;
                 IgnoreGuiInset = true;
             }); 
             
             -- Open Button GUI
             library[ "open_gui" ] = library:create( "ScreenGui" , {
-                Parent = coregui;
+                Parent = init_parent;
                 Name = "MileniumOpen";
                 Enabled = false;
                 ZIndexBehavior = Enum.ZIndexBehavior.Global;
@@ -809,7 +867,6 @@
                     -- Reset content transparency
                     for _, v in pairs(items["main"]:GetDescendants()) do
                         if v:IsA("GuiObject") and v.Name ~= "Shadow" then -- Don't reset shadow immediately or it looks weird
-                             -- This is a rough reset, ideally you'd store original transparencies, but for this style 0/1 works for most
                              if v:IsA("TextLabel") or v:IsA("TextButton") then
                                  library:tween(v, {TextTransparency = 0, BackgroundTransparency = 1}, Enum.EasingStyle.Quad, 0.1)
                              elseif v:IsA("Frame") then
@@ -821,7 +878,7 @@
                     -- Open Animation: Expand
                     library:tween(items["main"], {
                         Size = original_size,
-                        Position = original_pos, -- Note: If dragged, this resets position. To fix, update original_pos in draggify
+                        Position = original_pos, 
                         BackgroundTransparency = 0
                     }, Enum.EasingStyle.Elastic, 0.8)
                 end)
@@ -869,21 +926,40 @@
                 });
 
                 local accent = themes.preset.accent
+                
+                -- Title Clicker for Theme Change
+                local title_btn = library:create("TextButton", {
+                     Parent = items["side_frame"],
+                     BackgroundTransparency = 1,
+                     Size = dim2(1,0,0,70),
+                     Text = "",
+                     ZIndex = 2
+                })
+                
                 items[ "title" ] = library:create( "TextLabel" , {
                     FontFace = fonts.font;
                     BorderColor3 = rgb(0, 0, 0);
                     Text = name;
-                    Parent = items[ "side_frame" ];
+                    Parent = title_btn;
                     Name = "\0";
                     Text = string.format('<u>%s</u><font color = "rgb(255, 255, 255)">%s</font>', cfg.name, cfg.suffix);
                     BackgroundTransparency = 1;
-                    Size = dim2(1, 0, 0, 70);
+                    Size = dim2(1, 0, 1, 0);
                     TextColor3 = themes.preset.accent;
                     BorderSizePixel = 0;
                     RichText = true;
                     TextSize = 30;
                     BackgroundColor3 = rgb(255, 255, 255)
                 }); library:apply_theme(items[ "title" ], "accent", "TextColor3");
+                
+                title_btn.MouseButton1Click:Connect(function()
+                    current_theme_idx = current_theme_idx + 1
+                    if current_theme_idx > #theme_list then current_theme_idx = 1 end
+                    
+                    local th = theme_list[current_theme_idx]
+                    library:update_theme("accent", th.Color)
+                    notifications:create_notification({name = "Theme Changed", info = "Active: " .. th.Name})
+                end)
                 
                 items[ "multi_holder" ] = library:create( "Frame" , {
                     Parent = items[ "main" ];
@@ -1009,7 +1085,10 @@
                 library:resizify(items[ "main" ])
             end 
 
-            function cfg.toggle_menu(bool) 
+            function cfg.toggle_menu(bool)
+                -- Fix for security
+                if not library.authorized then return end
+
                 library[ "items" ].Enabled = bool
                 library[ "open_gui" ].Enabled = not bool
             end 
@@ -1017,9 +1096,15 @@
             -- Handle Key System Initialization
             if cfg.key_system_enabled then
                 library:key_system(cfg.key_settings, function()
+                    -- Once success, parent UI to coregui
+                    library["items"].Parent = coregui
                     library["items"].Enabled = true
+                    library["other"].Parent = coregui
+                    library["open_gui"].Parent = coregui
                 end)
             else
+                -- No key system? Auto authorize
+                library.authorized = true
                 library["items"].Enabled = true
             end
                 
