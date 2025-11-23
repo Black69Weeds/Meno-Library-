@@ -1,6 +1,7 @@
+
 --[[
 
-    Meno Library
+    Meno Library (Updated)
     
 ]]
 
@@ -76,6 +77,7 @@
         connections = {},   
         notifications = {notifs = {}},
         current_open; 
+        open_button_label = nil; -- For the home() function
     }
 
     local themes = {
@@ -227,7 +229,7 @@
             local og_size = frame.Size  
 
             Frame.InputBegan:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
                     resizing = true
                     start = input.Position
                     start_size = frame.Size
@@ -235,13 +237,13 @@
             end)
 
             Frame.InputEnded:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
                     resizing = false
                 end
             end)
 
             library:connection(uis.InputChanged, function(input, game_event) 
-                if resizing and input.UserInputType == Enum.UserInputType.MouseMovement then
+                if resizing and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
                     local viewport_x = camera.ViewportSize.X
                     local viewport_y = camera.ViewportSize.Y
 
@@ -294,8 +296,9 @@
             local start_size = frame.Position
             local start 
 
+            -- [UPDATED] Added Touch support
             frame.InputBegan:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
                     dragging = true
                     start = input.Position
                     start_size = frame.Position
@@ -303,13 +306,14 @@
             end)
 
             frame.InputEnded:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
                     dragging = false
                 end
             end)
 
             library:connection(uis.InputChanged, function(input, game_event) 
-                if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+                -- [UPDATED] Added Touch support in loop
+                if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
                     local viewport_x = camera.ViewportSize.X
                     local viewport_y = camera.ViewportSize.Y
 
@@ -482,6 +486,10 @@
                 library[ "other" ]:Destroy()
             end 
             
+            if library[ "open_gui" ] then
+                library[ "open_gui" ]:Destroy()
+            end
+
             for index, connection in library.connections do 
                 connection:Disconnect() 
                 connection = nil 
@@ -489,6 +497,13 @@
             
             library = nil 
         end 
+
+        -- [UPDATED] New function to change home button name
+        function library:home(text)
+            if library.open_button_label then
+                library.open_button_label.Text = text
+            end
+        end
     --
     
     -- Library element functions
@@ -519,6 +534,15 @@
                 ZIndexBehavior = Enum.ZIndexBehavior.Sibling;
                 IgnoreGuiInset = true;
             }); 
+            
+            -- [UPDATED] Create Open Button GUI
+            library[ "open_gui" ] = library:create( "ScreenGui" , {
+                Parent = coregui;
+                Name = "MileniumOpen";
+                Enabled = false; -- Start hidden
+                ZIndexBehavior = Enum.ZIndexBehavior.Global;
+                IgnoreGuiInset = true;
+            });
 
             local items = cfg.items; do
                 items[ "main" ] = library:create( "Frame" , {
@@ -551,6 +575,66 @@
                     BorderSizePixel = 0;
                     BackgroundColor3 = rgb(14, 14, 16)
                 });
+
+                -- [UPDATED] Close Button (X)
+                local close_button = library:create("TextButton", {
+                    Parent = items["main"],
+                    Text = "X",
+                    FontFace = fonts.font,
+                    TextColor3 = rgb(150, 150, 150),
+                    BackgroundTransparency = 1,
+                    Size = dim2(0, 30, 0, 30),
+                    Position = dim2(1, -5, 0, 5),
+                    AnchorPoint = vec2(1, 0),
+                    TextSize = 18,
+                    Name = "CloseButton"
+                })
+
+                close_button.MouseEnter:Connect(function()
+                    library:tween(close_button, {TextColor3 = rgb(255, 50, 50)})
+                end)
+                close_button.MouseLeave:Connect(function()
+                    library:tween(close_button, {TextColor3 = rgb(150, 150, 150)})
+                end)
+
+                -- [UPDATED] Open Button (Top Center)
+                local open_button_frame = library:create("TextButton", {
+                    Parent = library["open_gui"],
+                    Text = "",
+                    AutoButtonColor = false,
+                    BackgroundColor3 = rgb(20, 20, 20),
+                    Position = dim2(0.5, 0, 0, 10),
+                    AnchorPoint = vec2(0.5, 0),
+                    Size = dim2(0, 120, 0, 35),
+                    BorderSizePixel = 0
+                })
+                
+                library:create("UICorner", {Parent = open_button_frame, CornerRadius = dim(0, 6)})
+                library:create("UIStroke", {Parent = open_button_frame, Color = themes.preset.accent, Thickness = 1.5})
+                
+                local open_text = library:create("TextLabel", {
+                    Parent = open_button_frame,
+                    Size = dim2(1, 0, 1, 0),
+                    BackgroundTransparency = 1,
+                    Text = "Open Menu",
+                    TextColor3 = rgb(255, 255, 255),
+                    FontFace = fonts.font,
+                    TextSize = 16
+                })
+                library.open_button_label = open_text -- Save reference for library:home()
+
+                -- [UPDATED] Logic for Close/Open
+                close_button.MouseButton1Click:Connect(function()
+                    library["items"].Enabled = false
+                    library["open_gui"].Enabled = true
+                end)
+
+                open_button_frame.MouseButton1Click:Connect(function()
+                    library["items"].Enabled = true
+                    library["open_gui"].Enabled = false
+                end)
+                
+                -- Continue existing code
                 
                 library:create( "Frame" , {
                     AnchorPoint = vec2(1, 0);
@@ -729,16 +813,9 @@
             end 
 
             function cfg.toggle_menu(bool) 
-                -- WIP 
-                -- if cfg.tween then 
-                --     cfg.tween:Cancel()
-                -- end 
-
-                -- items[ "main" ].Size = dim2(items[ "main" ].Size.Scale.X, items[ "main" ].Size.Offset.X - 20, items[ "main" ].Size.Scale.Y, items[ "main" ].Size.Offset.Y - 20)
-                -- library:tween(items[ "tab_holder" ], {Size = dim2(1, -196, 1, -81)}, Enum.EasingStyle.Quad, 0.4)
-                -- cfg.tween = 
-                
                 library[ "items" ].Enabled = bool
+                -- Also handle the open gui state
+                library[ "open_gui" ].Enabled = not bool
             end 
                 
             return setmetatable(cfg, library)
@@ -1073,7 +1150,10 @@
 
             return unpack(cfg.pages)
         end
-
+        -- Remaining UI components omitted for brevity, they remain unchanged from your provided script.
+        -- Just ensuring the script closes properly with the return.
+        
+        -- Copy pasting the rest of the functions from original to ensure completeness
         function library:seperator(properties)
             local cfg = {items = {}, name = properties.Name or properties.name or "General"}
 
@@ -1869,7 +1949,7 @@
             end)
 
             library:connection(uis.InputChanged, function(input)
-                if cfg.dragging and input.UserInputType == Enum.UserInputType.MouseMovement then 
+                if cfg.dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then 
                     local size_x = (input.Position.X - items[ "slider" ].AbsolutePosition.X) / items[ "slider" ].AbsoluteSize.X
                     local value = ((cfg.max - cfg.min) * size_x) + cfg.min
                     cfg.set(value)
@@ -1877,7 +1957,7 @@
             end)
 
             library:connection(uis.InputEnded, function(input)
-                if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
                     cfg.dragging = false
                     library:tween(items[ "value" ], {TextColor3 = rgb(72, 72, 73)}, Enum.EasingStyle.Quad, 0.2) 
                 end 
@@ -2760,13 +2840,13 @@
             end)
 
             uis.InputChanged:Connect(function(input)
-                if (dragging_sat or dragging_hue or dragging_alpha) and input.UserInputType == Enum.UserInputType.MouseMovement then
+                if (dragging_sat or dragging_hue or dragging_alpha) and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
                     cfg.update_color() 
                 end
             end)
 
             library:connection(uis.InputEnded, function(input)
-                if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
                     dragging_sat = false
                     dragging_hue = false
                     dragging_alpha = false
