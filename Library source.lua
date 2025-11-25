@@ -1,6 +1,18 @@
+
 --[[
-    Meno Library (Remastered: Mini-Menu & Consistent Theme)
+
+    Meno Library
+
 ]]
+
+-- [1] SINGLE INSTANCE CHECK (Fix 4)
+local coregui = game:GetService("CoreGui")
+local existing_guis = {"MileniumMain", "MileniumOpen", "MileniumKeySystem"}
+for _, guiName in pairs(existing_guis) do
+    if coregui:FindFirstChild(guiName) then
+        coregui[guiName]:Destroy()
+    end
+end
 
 -- Variables 
     local uis = game:GetService("UserInputService") 
@@ -12,7 +24,6 @@
     local lighting = game:GetService("Lighting")
     local run = game:GetService("RunService")
     local stats = game:GetService("Stats")
-    local coregui = game:GetService("CoreGui")
     local debris = game:GetService("Debris")
     local tween_service = game:GetService("TweenService")
     local sound_service = game:GetService("SoundService")
@@ -78,7 +89,7 @@
         authorized = false, -- Security Variable
     }
 
-    -- 2. THEME FIX: Consistent "Midnight Violet" Palette
+    -- 2. THEME FIX: Consistent "Midnight Violet" Palette (Fix 5)
     local themes = {
         preset = {
             accent = rgb(125, 110, 255), -- Vibrant Violet Accent
@@ -93,7 +104,8 @@
                 BackgroundColor3 = {}, 	
                 TextColor3 = {}, 
                 ImageColor3 = {}, 
-                ScrollBarImageColor3 = {} 
+                ScrollBarImageColor3 = {},
+                Color = {} -- Added for UIStroke support
             },
         }
     }
@@ -307,50 +319,47 @@
             return (y_cond and x_cond)
         end
 
-        function library:draggify(frame)
-            local dragging = false 
-            local start_size = frame.Position
-            local start 
+        -- [2] SMOOTHER DRAG (Fix 2) - RenderStepped based
+        function library:draggify(frame, parent)
+            parent = parent or frame
+            local dragging = false
+            local dragInput, mousePos, framePos
 
             frame.InputBegan:Connect(function(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
                     dragging = true
-                    start = input.Position
-                    start_size = frame.Position
+                    mousePos = input.Position
+                    framePos = parent.Position
+
+                    input.Changed:Connect(function()
+                        if input.UserInputState == Enum.UserInputState.End then
+                            dragging = false
+                        end
+                    end)
                 end
             end)
 
-            frame.InputEnded:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-                    dragging = false
+            frame.InputChanged:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+                    dragInput = input
                 end
             end)
 
-            library:connection(uis.InputChanged, function(input, game_event) 
-                if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-                    local viewport_x = camera.ViewportSize.X
-                    local viewport_y = camera.ViewportSize.Y
-
-                    local current_position = dim2(
-                        0,
-                        clamp(
-                            start_size.X.Offset + (input.Position.X - start.X),
-                            0,
-                            viewport_x - frame.Size.X.Offset
-                        ),
-                        0,
-                        math.clamp(
-                            start_size.Y.Offset + (input.Position.Y - start.Y),
-                            0,
-                            viewport_y - frame.Size.Y.Offset
-                        )
+            library:connection(run.RenderStepped, function()
+                if dragging and dragInput then
+                    local delta = dragInput.Position - mousePos
+                    local smooth_speed = 0.2 -- Adjust for smoothness (lower = slower/smoother)
+                    local targetPos = dim2(
+                        framePos.X.Scale,
+                        framePos.X.Offset + delta.X,
+                        framePos.Y.Scale,
+                        framePos.Y.Offset + delta.Y
                     )
-
-                    library:tween(frame, {Position = current_position}, Enum.EasingStyle.Linear, 0.05)
-                    library:close_element()
+                    local current = parent.Position
+                    parent.Position = current:Lerp(targetPos, smooth_speed)
                 end
             end)
-        end 
+        end
 
         function library:convert(str)
             local values = {}
@@ -448,9 +457,9 @@
         end
 
         function library:update_theme(theme, color)
-            for _, property in themes.utility[theme] do 
-                for m, object in property do 
-                    object[_] = color 
+            for prop_name, property_list in themes.utility[theme] do 
+                for _, object in property_list do 
+                    object[prop_name] = color 
                 end 
             end 
             themes.preset[theme] = color 
@@ -816,108 +825,74 @@
                     library:tween(close_button, {TextColor3 = themes.preset.text_dim})
                 end)
 
-                -- 1. MINI-MENU IMPLEMENTATION (Bar with Name | FPS | Ping | + | X)
-                
-                local mini_frame = library:create("Frame", {
+                -- [3 & 4] BETTER MINI-MENU IMPLEMENTATION (Capsule Style + Tap to Open + Right Click Close)
+                local mini_button = library:create("TextButton", {
                     Parent = library["open_gui"],
-                    Size = dim2(0, 300, 0, 32),
-                    Position = dim2(0.5, -150, 0, 20),
+                    Size = dim2(0, 150, 0, 30), -- Small Size (Fix 3)
+                    Position = dim2(0.5, -75, 0, 20),
                     BackgroundColor3 = themes.preset.background,
-                    BorderSizePixel = 0
+                    BorderSizePixel = 0,
+                    Text = "",
+                    AutoButtonColor = false
                 })
                 
-                library:create("UICorner", {Parent = mini_frame, CornerRadius = dim(0, 6)})
-                library:create("UIStroke", {Parent = mini_frame, Color = themes.preset.accent, Thickness = 1.5})
-                
-                -- Mini Menu Draggable
-                library:draggify(mini_frame)
-                
-                -- Layout
-                local mini_layout = library:create("UIListLayout", {
-                    Parent = mini_frame,
-                    FillDirection = Enum.FillDirection.Horizontal,
-                    SortOrder = Enum.SortOrder.LayoutOrder,
-                    Padding = dim(0, 5),
-                    HorizontalAlignment = Enum.HorizontalAlignment.Center,
-                    VerticalAlignment = Enum.VerticalAlignment.Center
+                library:create("UICorner", {Parent = mini_button, CornerRadius = dim(1, 0)}) -- Capsule
+                local mini_stroke = library:create("UIStroke", {
+                    Parent = mini_button, 
+                    Color = themes.preset.accent, 
+                    Thickness = 1.5,
+                    ApplyStrokeMode = Enum.ApplyStrokeMode.Border
                 })
-                
-                library:create("UIPadding", {Parent = mini_frame, PaddingLeft = dim(0, 10), PaddingRight = dim(0, 10)})
+                library:apply_theme(mini_stroke, "accent", "Color") -- Theme Support
 
-                -- Mini Title
-                local mini_title = library:create("TextLabel", {
-                    Parent = mini_frame,
+                local mini_text = library:create("TextLabel", {
+                    Parent = mini_button,
+                    Size = dim2(1, 0, 1, 0),
+                    BackgroundTransparency = 1,
                     Text = cfg.name,
-                    TextColor3 = themes.preset.accent,
-                    FontFace = fonts.font,
-                    TextSize = 14,
-                    BackgroundTransparency = 1,
-                    AutomaticSize = Enum.AutomaticSize.X,
-                    LayoutOrder = 1
-                })
-                
-                -- Separator
-                library:create("Frame", {Parent = mini_frame, Size = dim2(0,1,0,16), BackgroundColor3 = themes.preset.container, LayoutOrder = 2})
-                
-                -- Stats (FPS/Ping)
-                local mini_stats = library:create("TextLabel", {
-                    Parent = mini_frame,
-                    Text = "0 FPS | 0 MS",
                     TextColor3 = themes.preset.text,
-                    FontFace = fonts.small,
-                    TextSize = 13,
-                    BackgroundTransparency = 1,
-                    AutomaticSize = Enum.AutomaticSize.X,
-                    LayoutOrder = 3
+                    FontFace = fonts.font,
+                    TextSize = 14
                 })
 
-                -- Stats Loop
-                task.spawn(function()
-                    while library and mini_frame.Parent do
-                        local ping = math.floor(game:GetService("Stats").Network.ServerStatsItem["Data Ping"]:GetValue())
-                        local fps = math.floor(workspace:GetRealPhysicsFPS())
-                        mini_stats.Text = fps .. " FPS | " .. ping .. " MS"
-                        task.wait(1)
+                -- Interaction Logic (Fix 1: Tap to Open, Right Click Close)
+                mini_button.MouseButton1Click:Connect(function()
+                    library["open_gui"].Enabled = false
+                    library["items"].Enabled = true
+                    
+                    items["main"].Size = dim2(0, 0, 0, 0)
+                    items["main"].Position = dim2(0.5, 0, 0.5, 0)
+                    items["main"].BackgroundTransparency = 0
+
+                    for _, v in pairs(items["main"]:GetDescendants()) do
+                         if v:IsA("GuiObject") and v.Name ~= "Shadow" then
+                             if v:IsA("TextLabel") or v:IsA("TextButton") then
+                                 library:tween(v, {TextTransparency = 0, BackgroundTransparency = 1}, Enum.EasingStyle.Quad, 0.1)
+                             end
+                        end
                     end
+
+                    library:tween(items["main"], {
+                        Size = original_size,
+                        Position = original_pos, 
+                        BackgroundTransparency = 0
+                    }, Enum.EasingStyle.Elastic, 0.8)
                 end)
 
-                -- Separator
-                library:create("Frame", {Parent = mini_frame, Size = dim2(0,1,0,16), BackgroundColor3 = themes.preset.container, LayoutOrder = 4})
+                mini_button.MouseButton2Click:Connect(function()
+                    library:unload_menu()
+                end)
 
-                -- Expand Button (+)
-                local mini_expand = library:create("TextButton", {
-                    Parent = mini_frame,
-                    Text = "+",
-                    TextColor3 = themes.preset.accent,
-                    FontFace = fonts.font,
-                    TextSize = 18,
-                    BackgroundTransparency = 1,
-                    Size = dim2(0, 20, 0, 20),
-                    LayoutOrder = 5
-                })
-
-                -- Close Button (X) - Destroys UI
-                local mini_close = library:create("TextButton", {
-                    Parent = mini_frame,
-                    Text = "x",
-                    TextColor3 = rgb(255, 60, 60),
-                    FontFace = fonts.font,
-                    TextSize = 16,
-                    BackgroundTransparency = 1,
-                    Size = dim2(0, 20, 0, 20),
-                    LayoutOrder = 6
-                })
-
-                -- Animation Logic
+                library:draggify(mini_button) -- Apply Smooth Drag
+                
+                -- Close Button Logic
                 close_button.MouseButton1Click:Connect(function()
-                    -- Close Animation: Shrink and Fade
                     library:tween(items["main"], {
                         Size = dim2(0, 0, 0, 0),
                         Position = dim2(0.5, 0, 0.5, 0),
                         BackgroundTransparency = 1
                     }, Enum.EasingStyle.Back, 0.4)
                     
-                    -- Fade out contents
                     for _, v in pairs(items["main"]:GetDescendants()) do
                         if v:IsA("GuiObject") then
                             library:tween(v, {Transparency = 1}, Enum.EasingStyle.Quad, 0.2)
@@ -929,39 +904,6 @@
                     library["open_gui"].Enabled = true
                 end)
 
-                mini_expand.MouseButton1Click:Connect(function()
-                    library["open_gui"].Enabled = false
-                    library["items"].Enabled = true
-                    
-                    -- Reset properties for animation
-                    items["main"].Size = dim2(0, 0, 0, 0)
-                    items["main"].Position = dim2(0.5, 0, 0.5, 0)
-                    items["main"].BackgroundTransparency = 0
-
-                    -- Reset content transparency
-                    for _, v in pairs(items["main"]:GetDescendants()) do
-                        if v:IsA("GuiObject") and v.Name ~= "Shadow" then -- Don't reset shadow immediately
-                             if v:IsA("TextLabel") or v:IsA("TextButton") then
-                                 library:tween(v, {TextTransparency = 0, BackgroundTransparency = 1}, Enum.EasingStyle.Quad, 0.1)
-                             elseif v:IsA("Frame") then
-                                 -- specific handle if needed
-                             end
-                        end
-                    end
-
-                    -- Open Animation: Expand
-                    library:tween(items["main"], {
-                        Size = original_size,
-                        Position = original_pos, 
-                        BackgroundTransparency = 0
-                    }, Enum.EasingStyle.Elastic, 0.8)
-                end)
-
-                mini_close.MouseButton1Click:Connect(function()
-                    library:unload_menu()
-                end)
-                
-                -- Update original_pos when dragging ends
                 items["main"].InputEnded:Connect(function(input)
                     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
                         original_pos = items["main"].Position
@@ -3292,472 +3234,6 @@
 
             return setmetatable(cfg, library)
         end 
-
-        function library:textbox(options) 
-            local cfg = {
-                name = options.name or "TextBox",
-                placeholder = options.placeholder or options.placeholdertext or options.holder or options.holdertext or "type here...",
-                default = options.default or "",
-                flag = options.flag or library:next_flag(),
-                callback = options.callback or function() end,
-                visible = options.visible or true,
-                items = {};
-            }
-
-            flags[cfg.flag] = cfg.default
-
-            local items = cfg.items; do 
-                items[ "textbox" ] = library:create( "TextButton" , {
-                    LayoutOrder = -1;
-                    FontFace = fonts.font;
-                    TextColor3 = rgb(0, 0, 0);
-                    BorderColor3 = rgb(0, 0, 0);
-                    Text = "";
-                    Parent = self.items[ "elements" ];
-                    Name = "\0";
-                    BackgroundTransparency = 1;
-                    Size = dim2(1, 0, 0, 0);
-                    BorderSizePixel = 0;
-                    AutomaticSize = Enum.AutomaticSize.Y;
-                    TextSize = 14;
-                    BackgroundColor3 = rgb(255, 255, 255)
-                });
-                
-                items[ "name" ] = library:create( "TextLabel" , {
-                    FontFace = fonts.font;
-                    TextColor3 = themes.preset.text; -- Fixed Theme
-                    BorderColor3 = rgb(0, 0, 0);
-                    Text = cfg.name;
-                    Parent = items[ "textbox" ];
-                    Name = "\0";
-                    Size = dim2(1, 0, 0, 0);
-                    BackgroundTransparency = 1;
-                    TextXAlignment = Enum.TextXAlignment.Left;
-                    BorderSizePixel = 0;
-                    AutomaticSize = Enum.AutomaticSize.XY;
-                    TextSize = 16;
-                    BackgroundColor3 = rgb(255, 255, 255)
-                });
-                
-                library:create( "UIPadding" , {
-                    Parent = items[ "name" ];
-                    PaddingRight = dim(0, 5);
-                    PaddingLeft = dim(0, 5)
-                });
-                
-                items[ "right_components" ] = library:create( "Frame" , {
-                    Parent = items[ "textbox" ];
-                    Name = "\0";
-                    BackgroundTransparency = 1;
-                    Position = dim2(0, 4, 0, 19);
-                    BorderColor3 = rgb(0, 0, 0);
-                    Size = dim2(1, 0, 0, 12);
-                    BorderSizePixel = 0;
-                    BackgroundColor3 = rgb(255, 255, 255)
-                });
-                
-                library:create( "UIListLayout" , {
-                    Parent = items[ "right_components" ];
-                    Padding = dim(0, 7);
-                    SortOrder = Enum.SortOrder.LayoutOrder;
-                    FillDirection = Enum.FillDirection.Horizontal
-                });
-                
-                items[ "input" ] = library:create( "TextBox" , {
-                    FontFace = fonts.font;
-                    Text = "";
-                    Parent = items[ "right_components" ];
-                    Name = "\0";
-                    TextTruncate = Enum.TextTruncate.AtEnd;
-                    BorderSizePixel = 0;
-                    PlaceholderColor3 = themes.preset.text_dim; -- Fixed Theme
-                    CursorPosition = -1;
-                    ClearTextOnFocus = false;
-                    TextSize = 14;
-                    BackgroundColor3 = rgb(255, 255, 255);
-                    TextColor3 = rgb(72, 72, 72);
-                    BorderColor3 = rgb(0, 0, 0);
-                    Position = dim2(1, 0, 0, 0);
-                    Size = dim2(1, -4, 0, 30);
-                    BackgroundColor3 = themes.preset.container
-                }); 
-
-                library:create( "UICorner" , {
-                    Parent = items[ "input" ];
-                    CornerRadius = dim(0, 3)
-                });                
-                
-                library:create( "UIPadding" , {
-                    Parent = items[ "right_components" ];
-                    PaddingTop = dim(0, 4);
-                    PaddingRight = dim(0, 4)
-                });
-            end 
-            
-            function cfg.set(text) 
-                flags[cfg.flag] = text
-
-                items[ "input" ].Text = text
-
-                cfg.callback(text)
-            end 
-            
-            items[ "input" ]:GetPropertyChangedSignal("Text"):Connect(function()
-                cfg.set(items[ "input" ].Text) 
-            end)
-
-            items[ "input" ].Focused:Connect(function()
-                library:tween(items[ "input" ], {TextColor3 = themes.preset.text})
-            end)
-
-            items[ "input" ].FocusLost:Connect(function()
-                library:tween(items[ "input" ], {TextColor3 = rgb(72, 72, 72)})
-            end)
-                
-            if cfg.default then 
-                cfg.set(cfg.default) 
-            end
-
-            config_flags[cfg.flag] = cfg.set
-
-            return setmetatable(cfg, library)
-        end
-
-        function library:keybind(options) 
-            local cfg = {
-                flag = options.flag or library:next_flag(),
-                callback = options.callback or function() end,
-                name = options.name or nil, 
-                ignore_key = options.ignore or false, 
-
-                key = options.key or nil, 
-                mode = options.mode or "Toggle",
-                active = options.default or false, 
-
-                open = false,
-                binding = nil, 
-
-                hold_instances = {},
-                items = {};
-            }
-
-            flags[cfg.flag] = {
-                mode = cfg.mode,
-                key = cfg.key, 
-                active = cfg.active
-            }
-
-            local items = cfg.items; do 
-                -- Component
-                    items[ "keybind_element" ] = library:create( "TextButton" , {
-                        FontFace = fonts.font;
-                        TextColor3 = rgb(0, 0, 0);
-                        BorderColor3 = rgb(0, 0, 0);
-                        Text = "";
-                        Parent = self.items[ "elements" ];
-                        Name = "\0";
-                        BackgroundTransparency = 1;
-                        Size = dim2(1, 0, 0, 0);
-                        BorderSizePixel = 0;
-                        AutomaticSize = Enum.AutomaticSize.Y;
-                        TextSize = 14;
-                        BackgroundColor3 = rgb(255, 255, 255)
-                    });
-                    
-                    items[ "name" ] = library:create( "TextLabel" , {
-                        FontFace = fonts.font;
-                        TextColor3 = themes.preset.text; -- Fixed Theme
-                        BorderColor3 = rgb(0, 0, 0);
-                        Text = cfg.name;
-                        Parent = items[ "keybind_element" ];
-                        Name = "\0";
-                        Size = dim2(1, 0, 0, 0);
-                        BackgroundTransparency = 1;
-                        TextXAlignment = Enum.TextXAlignment.Left;
-                        BorderSizePixel = 0;
-                        AutomaticSize = Enum.AutomaticSize.XY;
-                        TextSize = 16;
-                        BackgroundColor3 = rgb(255, 255, 255)
-                    });
-                    
-                    library:create( "UIPadding" , {
-                        Parent = items[ "name" ];
-                        PaddingRight = dim(0, 5);
-                        PaddingLeft = dim(0, 5)
-                    });
-                    
-                    items[ "right_components" ] = library:create( "Frame" , {
-                        Parent = items[ "keybind_element" ];
-                        Name = "\0";
-                        Position = dim2(1, 0, 0, 0);
-                        BorderColor3 = rgb(0, 0, 0);
-                        Size = dim2(0, 0, 1, 0);
-                        BorderSizePixel = 0;
-                        BackgroundColor3 = rgb(255, 255, 255)
-                    });
-                    
-                    library:create( "UIListLayout" , {
-                        FillDirection = Enum.FillDirection.Horizontal;
-                        HorizontalAlignment = Enum.HorizontalAlignment.Right;
-                        Parent = items[ "right_components" ];
-                        Padding = dim(0, 7);
-                        SortOrder = Enum.SortOrder.LayoutOrder
-                    });
-                    
-                    items[ "keybind_holder" ] = library:create( "TextButton" , {
-                        FontFace = fonts.font;
-                        TextColor3 = rgb(0, 0, 0);
-                        BorderColor3 = rgb(0, 0, 0);
-                        Text = "";
-                        Parent = items[ "right_components" ];
-                        AutoButtonColor = false;
-                        AnchorPoint = vec2(1, 0);
-                        Size = dim2(0, 0, 0, 16);
-                        Name = "\0";
-                        Position = dim2(1, 0, 0, 0);
-                        BorderSizePixel = 0;
-                        AutomaticSize = Enum.AutomaticSize.X;
-                        TextSize = 14;
-                        BackgroundColor3 = themes.preset.container
-                    });
-                    
-                    library:create( "UICorner" , {
-                        Parent = items[ "keybind_holder" ];
-                        CornerRadius = dim(0, 4)
-                    });
-                    
-                    items[ "key" ] = library:create( "TextLabel" , {
-                        FontFace = fonts.font;
-                        TextColor3 = themes.preset.text_dim;
-                        BorderColor3 = rgb(0, 0, 0);
-                        Text = "LSHIFT";
-                        Parent = items[ "keybind_holder" ];
-                        Name = "\0";
-                        Size = dim2(1, -12, 0, 0);
-                        BackgroundTransparency = 1;
-                        TextXAlignment = Enum.TextXAlignment.Left;
-                        BorderSizePixel = 0;
-                        AutomaticSize = Enum.AutomaticSize.XY;
-                        TextSize = 14;
-                        BackgroundColor3 = rgb(255, 255, 255)
-                    });
-                    
-                    library:create( "UIPadding" , {
-                        Parent = items[ "key" ];
-                        PaddingTop = dim(0, 1);
-                        PaddingRight = dim(0, 5);
-                        PaddingLeft = dim(0, 5)
-                    });                                  
-                -- 
-                
-                -- Mode Holder
-                    items[ "dropdown" ] = library:create( "Frame" , {
-                        BorderColor3 = rgb(0, 0, 0);
-                        Parent = library.items;
-                        Name = "\0";
-                        BackgroundTransparency = 1;
-                        Position = dim2(0, 0, 0, 0);
-                        Size = dim2(0, 0, 0, 0);
-                        BorderSizePixel = 0;
-                        AutomaticSize = Enum.AutomaticSize.X;
-                        BackgroundColor3 = rgb(0, 0, 0)
-                    });
-                    
-                    items[ "inline" ] = library:create( "Frame" , {
-                        Parent = items[ "dropdown" ];
-                        Size = dim2(1, 0, 1, 0);
-                        Name = "\0";
-                        ClipsDescendants = true;
-                        BorderColor3 = rgb(0, 0, 0);
-                        BorderSizePixel = 0;
-                        BackgroundColor3 = themes.preset.container
-                    });
-                    
-                    library:create( "UIPadding" , {
-                        PaddingBottom = dim(0, 6);
-                        PaddingTop = dim(0, 3);
-                        PaddingLeft = dim(0, 3);
-                        Parent = items[ "inline" ]
-                    });
-                    
-                    library:create( "UIListLayout" , {
-                        Parent = items[ "inline" ];
-                        Padding = dim(0, 5);
-                        SortOrder = Enum.SortOrder.LayoutOrder
-                    });
-                    
-                    library:create( "UICorner" , {
-                        Parent = items[ "inline" ];
-                        CornerRadius = dim(0, 4)
-                    });
-                    
-                    local options = {"Hold", "Toggle", "Always"}
-                    
-                    cfg.y_size = 20
-                    for _, option in options do                        
-                        local name = library:create( "TextButton" , {
-                            FontFace = fonts.font;
-                            TextColor3 = themes.preset.text_dim;
-                            BorderColor3 = rgb(0, 0, 0);
-                            Text = option;
-                            Parent = items[ "inline" ];
-                            Name = "\0";
-                            Size = dim2(0, 0, 0, 0);
-                            BackgroundTransparency = 1;
-                            TextXAlignment = Enum.TextXAlignment.Left;
-                            BorderSizePixel = 0;
-                            AutomaticSize = Enum.AutomaticSize.XY;
-                            TextSize = 14;
-                            BackgroundColor3 = rgb(255, 255, 255)
-                        }); cfg.hold_instances[option] = name
-                        library:apply_theme(name, "accent", "TextColor3")
-                        
-                        cfg.y_size += name.AbsoluteSize.Y
-
-                        library:create( "UIPadding" , {
-                            Parent = name;
-                            PaddingTop = dim(0, 1);
-                            PaddingRight = dim(0, 5);
-                            PaddingLeft = dim(0, 5)
-                        });
-
-                        name.MouseButton1Click:Connect(function()
-                            cfg.set(option)
-
-                            cfg.set_visible(false)
-
-                            cfg.open = false
-                        end)
-                    end
-                -- 
-            end 
-            
-            function cfg.modify_mode_color(path) -- ts so frikin tuff 💀
-                for _, v in cfg.hold_instances do 
-                    v.TextColor3 = rgb(72, 72, 72)
-                end 
-
-                cfg.hold_instances[path].TextColor3 = themes.preset.accent
-            end
-
-            function cfg.set_mode(mode) 
-                cfg.mode = mode 
-
-                if mode == "Always" then
-                    cfg.set(true)
-                elseif mode == "Hold" then
-                    cfg.set(false)
-                end
-
-                flags[cfg.flag]["mode"] = mode
-                cfg.modify_mode_color(mode)
-            end 
-
-            function cfg.set(input)
-                if type(input) == "boolean" then 
-                    cfg.active = input
-
-                    if cfg.mode == "Always" then 
-                        cfg.active = true
-                    end
-                elseif tostring(input):find("Enum") then 
-                    input = input.Name == "Escape" and "NONE" or input
-                    
-                    cfg.key = input or "NONE"	
-                elseif find({"Toggle", "Hold", "Always"}, input) then 
-                    if input == "Always" then 
-                        cfg.active = true 
-                    end 
-
-                    cfg.mode = input
-                    cfg.set_mode(cfg.mode) 
-                elseif type(input) == "table" then 
-                    input.key = type(input.key) == "string" and input.key ~= "NONE" and library:convert_enum(input.key) or input.key
-                    input.key = input.key == Enum.KeyCode.Escape and "NONE" or input.key
-
-                    cfg.key = input.key or "NONE"
-                    cfg.mode = input.mode or "Toggle"
-
-                    if input.active then
-                        cfg.active = input.active
-                    end
-
-                    cfg.set_mode(cfg.mode) 
-                end 
-
-                cfg.callback(cfg.active)
-
-                local text = tostring(cfg.key) ~= "Enums" and (keys[cfg.key] or tostring(cfg.key):gsub("Enum.", "")) or nil
-                local __text = text and (tostring(text):gsub("KeyCode.", ""):gsub("UserInputType.", ""))
-                
-                items[ "key" ].Text = __text
-
-                flags[cfg.flag] = {
-                    mode = cfg.mode,
-                    key = cfg.key, 
-                    active = cfg.active
-                }
-            end
-
-            function cfg.set_visible(bool)
-                local size = bool and cfg.y_size or 0
-                library:tween(items[ "dropdown" ], {Size = dim_offset(items[ "keybind_holder" ].AbsoluteSize.X, size)})
-
-                items[ "dropdown" ].Position = dim_offset(items[ "keybind_holder" ].AbsolutePosition.X, items[ "keybind_holder" ].AbsolutePosition.Y + items[ "keybind_holder" ].AbsoluteSize.Y + 60)
-            end
-        
-            items[ "keybind_holder" ].MouseButton1Down:Connect(function()
-                task.wait()
-                items[ "key" ].Text = "..."	
-
-                cfg.binding = library:connection(uis.InputBegan, function(keycode, game_event)  
-                    cfg.set(keycode.KeyCode ~= Enum.KeyCode.Unknown and keycode.KeyCode or keycode.UserInputType)
-                    
-                    cfg.binding:Disconnect() 
-                    cfg.binding = nil
-                end)
-            end)
-
-            items[ "keybind_holder" ].MouseButton2Down:Connect(function()
-                cfg.open = not cfg.open 
-
-                cfg.set_visible(cfg.open)
-            end)
-
-            library:connection(uis.InputBegan, function(input, game_event) 
-                if not game_event then
-                    local selected_key = input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode or input.UserInputType
-
-                    if selected_key == cfg.key then 
-                        if cfg.mode == "Toggle" then 
-                            cfg.active = not cfg.active
-                            cfg.set(cfg.active)
-                        elseif cfg.mode == "Hold" then 
-                            cfg.set(true)
-                        end
-                    end
-                end
-            end)    
-
-            library:connection(uis.InputEnded, function(input, game_event) 
-                if game_event then 
-                    return 
-                end 
-
-                local selected_key = input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode or input.UserInputType
-    
-                if selected_key == cfg.key then
-                    if cfg.mode == "Hold" then 
-                        cfg.set(false)
-                    end
-                end
-            end)
-            
-            cfg.set({mode = cfg.mode, active = cfg.active, key = cfg.key})           
-            config_flags[cfg.flag] = cfg.set
-
-            return setmetatable(cfg, library)
-        end
 
         function library:button(options) 
             local cfg = {
