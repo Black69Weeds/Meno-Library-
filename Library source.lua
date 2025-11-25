@@ -1,10 +1,13 @@
 
 --[[
-    Meno Library (Remastered: Mini-Menu & Consistent Theme)
-    Updated for User Request
+    Meno Library (Remastered: Premium Theme & Animation)
+    - Re-themed to "Nightfall"
+    - Mini-Menu Layout: Left/Center/Right alignment
+    - Startup Animation added
+    - Code spacing improved
 ]]
 
--- 3. SINGLE INSTANCE ENFORCER
+-- 1. SINGLE INSTANCE ENFORCER
 if getgenv().library and getgenv().library.unload_menu then
     getgenv().library:unload_menu()
 end
@@ -85,15 +88,16 @@ end
         authorized = false, 
     }
 
-    -- 2. THEME FIX: Consistent Palette System
-    -- We define utility tables to store objects that need color updates
+    -- 2. THEME OVERHAUL: Premium Nightfall Palette
     local themes = {
         preset = {
-            accent = rgb(125, 110, 255), 
-            background = rgb(12, 12, 14), 
-            container = rgb(18, 18, 22), 
-            text = rgb(240, 240, 240), 
-            text_dim = rgb(150, 150, 160) 
+            -- A Modern, Cohesive Dark Theme
+            accent = rgb(110, 130, 255),       -- Soft Blurple Accent
+            background = rgb(14, 14, 18),      -- Deep Dark Blue-Grey
+            container = rgb(20, 20, 26),       -- Slightly lighter than BG
+            border = rgb(30, 30, 38),          -- Subtle Border
+            text = rgb(240, 240, 245),         -- White-ish text
+            text_dim = rgb(130, 130, 140)      -- Dimmed grey text
         }, 
 
         utility = {
@@ -101,59 +105,39 @@ end
             background = { BackgroundColor3 = {} },
             container = { BackgroundColor3 = {}, BorderColor3 = {} },
             text = { TextColor3 = {} },
-            text_dim = { TextColor3 = {}, ImageColor3 = {} }
+            text_dim = { TextColor3 = {}, ImageColor3 = {} },
+            border = { BorderColor3 = {}, Color = {} } -- Added utility for UIStroke
         }
     }
     
-    -- Theme List: Defines how the WHOLE UI looks for each preset
+    -- Theme List
     local theme_list = {
         {
-            Name = "Violet", 
-            accent = rgb(125, 110, 255), 
-            background = rgb(12, 12, 14), 
-            container = rgb(18, 18, 22), 
-            text = rgb(240, 240, 240), 
-            text_dim = rgb(150, 150, 160)
+            Name = "Nightfall", 
+            accent = rgb(110, 130, 255), 
+            background = rgb(14, 14, 18), 
+            container = rgb(20, 20, 26), 
+            border = rgb(30, 30, 38),
+            text = rgb(240, 240, 245), 
+            text_dim = rgb(130, 130, 140)
         },
         {
-            Name = "Crimson",    
+            Name = "Crimson Dark",    
             accent = rgb(255, 65, 65),
-            background = rgb(15, 10, 10), -- Slightly Red tinted dark
-            container = rgb(25, 15, 15),
+            background = rgb(12, 10, 10), 
+            container = rgb(20, 15, 15),
+            border = rgb(35, 20, 20),
             text = rgb(255, 230, 230),
             text_dim = rgb(180, 140, 140)
         },
         {
-            Name = "Azure",   
+            Name = "Midnight Azure",   
             accent = rgb(60, 140, 255),
-            background = rgb(10, 12, 16), -- Slightly Blue tinted dark
-            container = rgb(16, 20, 28),
+            background = rgb(10, 12, 16),
+            container = rgb(14, 18, 24),
+            border = rgb(25, 30, 40),
             text = rgb(230, 240, 255),
             text_dim = rgb(130, 150, 180)
-        },
-        {
-            Name = "Emerald",  
-            accent = rgb(60, 255, 130),
-            background = rgb(10, 15, 12), -- Slightly Green tinted dark
-            container = rgb(15, 25, 18),
-            text = rgb(230, 255, 240),
-            text_dim = rgb(130, 160, 140)
-        },
-        {
-            Name = "Orange",   
-            accent = rgb(255, 150, 50),
-            background = rgb(16, 12, 10), -- Slightly Orange tinted dark
-            container = rgb(28, 20, 15),
-            text = rgb(255, 240, 230),
-            text_dim = rgb(180, 150, 130)
-        },
-        {
-            Name = "Monochrome",  
-            accent = rgb(220, 220, 220),
-            background = rgb(10, 10, 10),
-            container = rgb(20, 20, 20),
-            text = rgb(255, 255, 255),
-            text_dim = rgb(120, 120, 120)
         },
     }
     local current_theme_idx = 1
@@ -442,10 +426,6 @@ end
         end
 
         function library:update_theme(theme_name, color_val)
-            -- This function now supports updating a specific category OR the full palette
-            -- If 'theme_name' is a string like "accent", it updates that.
-            -- If we are doing a full refresh, we handle it elsewhere or iterate.
-            
             if themes.utility[theme_name] then
                 for property, objects in themes.utility[theme_name] do
                     for _, object in objects do
@@ -460,6 +440,7 @@ end
             library:update_theme("accent", theme_data.accent)
             library:update_theme("background", theme_data.background)
             library:update_theme("container", theme_data.container)
+            library:update_theme("border", theme_data.border)
             library:update_theme("text", theme_data.text)
             library:update_theme("text_dim", theme_data.text_dim)
         end
@@ -762,10 +743,10 @@ end
                 });
                 
                 local stroke = library:create( "UIStroke" , {
-                    Color = themes.preset.container; 
+                    Color = themes.preset.border; -- Using Border theme
                     Parent = items[ "main" ];
                     ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-                }); library:apply_theme(stroke, "container", "Color")
+                }); library:apply_theme(stroke, "border", "Color")
                 
                 items[ "side_frame" ] = library:create( "Frame" , {
                     Parent = items[ "main" ];
@@ -798,10 +779,10 @@ end
                     library:tween(close_button, {TextColor3 = themes.preset.text_dim})
                 end)
 
-                -- 1. MINI-MENU IMPLEMENTATION (Cleaned: No Buttons)
-                local mini_frame = library:create("TextButton", { -- Changed to TextButton for click detection
+                -- 2. MINI-MENU REDESIGN (Left/Right Layout)
+                local mini_frame = library:create("TextButton", {
                     Parent = library["open_gui"],
-                    Size = dim2(0, 300, 0, 32),
+                    Size = dim2(0, 300, 0, 36), -- Slightly taller for better spacing
                     Position = dim2(0.5, -150, 0, 20),
                     BackgroundColor3 = themes.preset.background,
                     BorderSizePixel = 0,
@@ -815,55 +796,62 @@ end
                 
                 library:draggify(mini_frame)
                 
-                local mini_layout = library:create("UIListLayout", {
-                    Parent = mini_frame,
-                    FillDirection = Enum.FillDirection.Horizontal,
-                    SortOrder = Enum.SortOrder.LayoutOrder,
-                    Padding = dim(0, 5),
-                    HorizontalAlignment = Enum.HorizontalAlignment.Center,
-                    VerticalAlignment = Enum.VerticalAlignment.Center
-                })
-                
-                library:create("UIPadding", {Parent = mini_frame, PaddingLeft = dim(0, 10), PaddingRight = dim(0, 10)})
-
-                -- Mini Title
+                -- TITLE (Center)
                 local mini_title = library:create("TextLabel", {
                     Parent = mini_frame,
                     Text = cfg.name,
                     TextColor3 = themes.preset.accent,
                     FontFace = fonts.font,
-                    TextSize = 14,
+                    TextSize = 15,
                     BackgroundTransparency = 1,
-                    AutomaticSize = Enum.AutomaticSize.X,
-                    LayoutOrder = 1
+                    Size = dim2(0, 0, 1, 0),
+                    Position = dim2(0.5, 0, 0.5, 0),
+                    AnchorPoint = vec2(0.5, 0.5),
+                    AutomaticSize = Enum.AutomaticSize.X
                 }); library:apply_theme(mini_title, "accent", "TextColor3")
-                
-                -- Separator
-                local sep1 = library:create("Frame", {Parent = mini_frame, Size = dim2(0,1,0,16), BackgroundColor3 = themes.preset.container, LayoutOrder = 2})
-                library:apply_theme(sep1, "container", "BackgroundColor3")
 
-                -- Stats (FPS/Ping)
-                local mini_stats = library:create("TextLabel", {
+                -- FPS (Left)
+                local fps_label = library:create("TextLabel", {
                     Parent = mini_frame,
-                    Text = "0 FPS | 0 MS",
-                    TextColor3 = themes.preset.text,
+                    Text = "FPS: 60",
+                    TextColor3 = themes.preset.text_dim,
                     FontFace = fonts.small,
                     TextSize = 13,
                     BackgroundTransparency = 1,
-                    AutomaticSize = Enum.AutomaticSize.X,
-                    LayoutOrder = 3
-                }); library:apply_theme(mini_stats, "text", "TextColor3")
+                    Size = dim2(0, 0, 1, 0),
+                    Position = dim2(0, 10, 0.5, 0), -- Left Padding 10
+                    AnchorPoint = vec2(0, 0.5),
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    AutomaticSize = Enum.AutomaticSize.X
+                }); library:apply_theme(fps_label, "text_dim", "TextColor3")
 
+                -- PING (Right)
+                local ping_label = library:create("TextLabel", {
+                    Parent = mini_frame,
+                    Text = "Ping: 0ms",
+                    TextColor3 = themes.preset.text_dim,
+                    FontFace = fonts.small,
+                    TextSize = 13,
+                    BackgroundTransparency = 1,
+                    Size = dim2(0, 0, 1, 0),
+                    Position = dim2(1, -10, 0.5, 0), -- Right Padding 10
+                    AnchorPoint = vec2(1, 0.5),
+                    TextXAlignment = Enum.TextXAlignment.Right,
+                    AutomaticSize = Enum.AutomaticSize.X
+                }); library:apply_theme(ping_label, "text_dim", "TextColor3")
+
+                -- Stats Updater
                 task.spawn(function()
                     while library and mini_frame.Parent do
                         local ping = math.floor(game:GetService("Stats").Network.ServerStatsItem["Data Ping"]:GetValue())
                         local fps = math.floor(workspace:GetRealPhysicsFPS())
-                        mini_stats.Text = fps .. " FPS | " .. ping .. " MS"
+                        fps_label.Text = "FPS: " .. fps
+                        ping_label.Text = "Ping: " .. ping .. "ms"
                         task.wait(1)
                     end
                 end)
 
-                -- CLICK TO OPEN LOGIC (Since buttons are gone)
+                -- CLICK TO OPEN LOGIC
                 mini_frame.MouseButton1Click:Connect(function()
                     library["open_gui"].Enabled = false
                     library["items"].Enabled = true
@@ -947,7 +935,7 @@ end
                     PaddingLeft = dim(0, 10)
                 });
 
-                -- Title Clicker for Theme Change (UPDATED LOGIC)
+                -- Title Clicker for Theme Change
                 local title_btn = library:create("TextButton", {
                      Parent = items["side_frame"],
                      BackgroundTransparency = 1,
@@ -986,16 +974,11 @@ end
                     BackgroundColor3 = rgb(255, 255, 255)
                 }); library:apply_theme(items[ "title" ], "accent", "TextColor3");
                 
-                -- THEME CHANGER CLICK LOGIC (UPDATED)
                 title_btn.MouseButton1Click:Connect(function()
                     current_theme_idx = current_theme_idx + 1
                     if current_theme_idx > #theme_list then current_theme_idx = 1 end
-                    
                     local th = theme_list[current_theme_idx]
-                    
-                    -- Update All Colors
                     library:set_full_theme(th)
-                    
                     notifications:create_notification({name = "Theme Changed", info = "Active: " .. th.Name})
                 end)
                 
@@ -1115,7 +1098,40 @@ end
                     FontFace = fonts.font;
                     TextSize = 14;
                     BackgroundColor3 = rgb(255, 255, 255)
-                }); library:apply_theme(items[ "other_info" ], "accent", "TextColor3");        
+                }); library:apply_theme(items[ "other_info" ], "accent", "TextColor3"); 
+
+                -- 3. LOADING ANIMATION
+                task.spawn(function()
+                    if items["main"] then
+                        items["main"].Size = dim2(0, 0, 0, 0)
+                        items["main"].BackgroundTransparency = 1
+                        
+                        -- Hide contents temporarily
+                        for _, v in pairs(items["main"]:GetDescendants()) do
+                            if v:IsA("GuiObject") and v.Name ~= "Shadow" then
+                                v.Transparency = 1
+                            end
+                        end
+                        
+                        task.wait(0.1)
+                        
+                        -- Pop up animation
+                        library:tween(items["main"], {Size = original_size, BackgroundTransparency = 0}, Enum.EasingStyle.Back, 0.6)
+                        
+                        -- Fade in contents
+                        for _, v in pairs(items["main"]:GetDescendants()) do
+                            if v:IsA("GuiObject") and v.Name ~= "Shadow" then
+                                if v:IsA("TextLabel") or v:IsA("TextButton") then
+                                    library:tween(v, {TextTransparency = 0, BackgroundTransparency = 1}, Enum.EasingStyle.Quad, 0.4)
+                                elseif v:IsA("ImageLabel") or v:IsA("ImageButton") then
+                                    library:tween(v, {ImageTransparency = 0, BackgroundTransparency = 1}, Enum.EasingStyle.Quad, 0.4)
+                                elseif v:IsA("UIStroke") then
+                                    library:tween(v, {Transparency = 0}, Enum.EasingStyle.Quad, 0.4)
+                                end
+                            end
+                        end
+                    end
+                end)
             end 
 
             do -- Other
@@ -3072,7 +3088,7 @@ end
                         CornerRadius = dim(0, 3)
                     });
                     
-                    items[ "UICorenr" ] = library:create( "UICorner" , { -- Corrected name in object creation just in case
+                    items[ "UICorenr" ] = library:create( "UICorner" , { 
                         Parent = items[ "colorpicker_holder" ];
                         Name = "Corner";
                         CornerRadius = dim(0, 4)
