@@ -1,5 +1,4 @@
 
-
 --[[
     Meno Library (Remastered: Premium Theme & Animation)
     - Re-themed to "Nightfall"
@@ -9,21 +8,9 @@
 ]]
 
 -- 1. SINGLE INSTANCE ENFORCER
-local getgenv = getgenv or function() return _G end
 if getgenv().library and getgenv().library.unload_menu then
-    pcall(function() getgenv().library:unload_menu() end)
+    getgenv().library:unload_menu()
 end
-
--- Polyfills
-local isfile = isfile or function() return false end
-local readfile = readfile or function() return "" end
-local writefile = writefile or function() end
-local listfiles = listfiles or function() return {} end
-local makefolder = makefolder or function() end
-local isfolder = isfolder or function() return false end
-local delfile = delfile or function() end
-local setclipboard = setclipboard or function() end
-local getcustomasset = getcustomasset
 
 -- Variables 
     local uis = game:GetService("UserInputService") 
@@ -104,12 +91,13 @@ local getcustomasset = getcustomasset
     -- 2. THEME OVERHAUL: Premium Nightfall Palette
     local themes = {
         preset = {
-            accent = rgb(110, 130, 255),       
-            background = rgb(14, 14, 18),      
-            container = rgb(20, 20, 26),       
-            border = rgb(30, 30, 38),          
-            text = rgb(240, 240, 245),         
-            text_dim = rgb(130, 130, 140)      
+            -- A Modern, Cohesive Dark Theme
+            accent = rgb(110, 130, 255),       -- Soft Blurple Accent
+            background = rgb(14, 14, 18),      -- Deep Dark Blue-Grey
+            container = rgb(20, 20, 26),       -- Slightly lighter than BG
+            border = rgb(30, 30, 38),          -- Subtle Border
+            text = rgb(240, 240, 245),         -- White-ish text
+            text_dim = rgb(130, 130, 140)      -- Dimmed grey text
         }, 
 
         utility = {
@@ -118,10 +106,11 @@ local getcustomasset = getcustomasset
             container = { BackgroundColor3 = {}, BorderColor3 = {} },
             text = { TextColor3 = {} },
             text_dim = { TextColor3 = {}, ImageColor3 = {} },
-            border = { BorderColor3 = {}, Color = {} } 
+            border = { BorderColor3 = {}, Color = {} } -- Added utility for UIStroke
         }
     }
     
+    -- Theme List
     local theme_list = {
         {
             Name = "Nightfall", 
@@ -157,24 +146,30 @@ local getcustomasset = getcustomasset
         [Enum.KeyCode.LeftShift] = "LS", [Enum.KeyCode.RightShift] = "RS",
         [Enum.KeyCode.LeftControl] = "LC", [Enum.KeyCode.RightControl] = "RC",
         [Enum.KeyCode.Insert] = "INS", [Enum.KeyCode.Backspace] = "BS",
-        [Enum.KeyCode.Return] = "Ent", [Enum.KeyCode.LeftAlt] = "LA",[Enum.KeyCode.RightAlt] = "RA", [Enum.KeyCode.CapsLock] = "CAPS",[Enum.KeyCode.One] = "1", [Enum.KeyCode.Two] = "2",[Enum.KeyCode.Three] = "3",
-        [Enum.KeyCode.Four] = "4",[Enum.KeyCode.Five] = "5", [Enum.KeyCode.Six] = "6",[Enum.KeyCode.Seven] = "7", [Enum.KeyCode.Eight] = "8", [Enum.KeyCode.Nine] = "9",
-        [Enum.KeyCode.Zero] = "0",[Enum.KeyCode.KeypadOne] = "Num1", [Enum.KeyCode.KeypadTwo] = "Num2",[Enum.KeyCode.KeypadThree] = "Num3", [Enum.KeyCode.KeypadFour] = "Num4", [Enum.KeyCode.KeypadFive] = "Num5",[Enum.KeyCode.KeypadSix] = "Num6", [Enum.KeyCode.KeypadSeven] = "Num7",[Enum.KeyCode.KeypadEight] = "Num8",
-        [Enum.KeyCode.KeypadNine] = "Num9", [Enum.KeyCode.KeypadZero] = "Num0",[Enum.KeyCode.Minus] = "-",
+        [Enum.KeyCode.Return] = "Ent", [Enum.KeyCode.LeftAlt] = "LA",
+        [Enum.KeyCode.RightAlt] = "RA", [Enum.KeyCode.CapsLock] = "CAPS",
+        [Enum.KeyCode.One] = "1", [Enum.KeyCode.Two] = "2", [Enum.KeyCode.Three] = "3",
+        [Enum.KeyCode.Four] = "4", [Enum.KeyCode.Five] = "5", [Enum.KeyCode.Six] = "6",
+        [Enum.KeyCode.Seven] = "7", [Enum.KeyCode.Eight] = "8", [Enum.KeyCode.Nine] = "9",
+        [Enum.KeyCode.Zero] = "0", [Enum.KeyCode.KeypadOne] = "Num1", [Enum.KeyCode.KeypadTwo] = "Num2",
+        [Enum.KeyCode.KeypadThree] = "Num3", [Enum.KeyCode.KeypadFour] = "Num4", [Enum.KeyCode.KeypadFive] = "Num5",
+        [Enum.KeyCode.KeypadSix] = "Num6", [Enum.KeyCode.KeypadSeven] = "Num7", [Enum.KeyCode.KeypadEight] = "Num8",
+        [Enum.KeyCode.KeypadNine] = "Num9", [Enum.KeyCode.KeypadZero] = "Num0", [Enum.KeyCode.Minus] = "-",
         [Enum.KeyCode.Equals] = "=", [Enum.KeyCode.Tilde] = "~", [Enum.KeyCode.LeftBracket] = "[",
         [Enum.KeyCode.RightBracket] = "]", [Enum.KeyCode.RightParenthesis] = ")", [Enum.KeyCode.LeftParenthesis] = "(",
         [Enum.KeyCode.Semicolon] = ",", [Enum.KeyCode.Quote] = "'", [Enum.KeyCode.BackSlash] = "\\",
-        [Enum.KeyCode.Comma] = ",",[Enum.KeyCode.Period] = ".", [Enum.KeyCode.Slash] = "/",[Enum.KeyCode.Asterisk] = "*", [Enum.KeyCode.Plus] = "+", [Enum.KeyCode.Period] = ".",
+        [Enum.KeyCode.Comma] = ",", [Enum.KeyCode.Period] = ".", [Enum.KeyCode.Slash] = "/",
+        [Enum.KeyCode.Asterisk] = "*", [Enum.KeyCode.Plus] = "+", [Enum.KeyCode.Period] = ".",
         [Enum.KeyCode.Backquote] = "`", [Enum.UserInputType.MouseButton1] = "MB1",
-        [Enum.UserInputType.MouseButton2] = "MB2",[Enum.UserInputType.MouseButton3] = "MB3",
-        [Enum.KeyCode.Escape] = "ESC",[Enum.KeyCode.Space] = "SPC",
+        [Enum.UserInputType.MouseButton2] = "MB2", [Enum.UserInputType.MouseButton3] = "MB3",
+        [Enum.KeyCode.Escape] = "ESC", [Enum.KeyCode.Space] = "SPC",
     }
         
     library.__index = library
 
-    for _, path in pairs(library.folders) do 
-        if isfolder and not isfolder(library.directory .. path) then
-            pcall(function() makefolder(library.directory .. path) end)
+    for _, path in next, library.folders do 
+        if not isfolder(library.directory .. path) then
+            makefolder(library.directory .. path)
         end
     end
 
@@ -183,20 +178,13 @@ local getcustomasset = getcustomasset
     local notifications = library.notifications 
 
     local fonts = {}; do
-        local function fetch_font(url)
-            if not getcustomasset or not game.HttpGet then return "" end
-            local s, r = pcall(function() return game:HttpGet(url) end)
-            return s and r or ""
-        end
-
         function Register_Font(Name, Weight, Style, Asset)
-            if not getcustomasset then return "rbxasset://fonts/families/GothamSSm.json" end
             if not isfile(Asset.Id) then
-                pcall(function() writefile(Asset.Id, Asset.Font) end)
+                writefile(Asset.Id, Asset.Font)
             end
 
             if isfile(Name .. ".font") then
-                pcall(function() delfile(Name .. ".font") end)
+                delfile(Name .. ".font")
             end
 
             local Data = {
@@ -211,18 +199,18 @@ local getcustomasset = getcustomasset
                 },
             }
 
-            pcall(function() writefile(Name .. ".font", http_service:JSONEncode(Data)) end)
-            return getcustomasset(Name .. ".font") or "rbxasset://fonts/families/GothamSSm.json"
+            writefile(Name .. ".font", http_service:JSONEncode(Data))
+            return getcustomasset(Name .. ".font");
         end
         
         local Medium = Register_Font("Medium", 200, "Normal", {
             Id = "Medium.ttf",
-            Font = fetch_font("https://github.com/i77lhm/storage/raw/refs/heads/main/fonts/Inter_28pt-Medium.ttf"),
+            Font = game:HttpGet("https://github.com/i77lhm/storage/raw/refs/heads/main/fonts/Inter_28pt-Medium.ttf"),
         })
 
         local SemiBold = Register_Font("SemiBold", 200, "Normal", {
             Id = "SemiBold.ttf",
-            Font = fetch_font("https://github.com/i77lhm/storage/raw/refs/heads/main/fonts/Inter_28pt-SemiBold.ttf"),
+            Font = game:HttpGet("https://github.com/i77lhm/storage/raw/refs/heads/main/fonts/Inter_28pt-SemiBold.ttf"),
         })
 
         fonts = {
@@ -233,6 +221,7 @@ local getcustomasset = getcustomasset
 --
 
 -- Library functions 
+    -- Misc functions
         function library:tween(obj, properties, easing_style, time) 
             local tween = tween_service:Create(obj, TweenInfo.new(time or 0.25, easing_style or Enum.EasingStyle.Quint, Enum.EasingDirection.InOut, 0, false, 0), properties):Play()
             return tween
@@ -295,7 +284,7 @@ local getcustomasset = getcustomasset
 
         function fag(tbl)
             local Size = 0
-            for _ in pairs(tbl) do
+            for _ in tbl do
                 Size = Size + 1
             end
             return Size
@@ -342,13 +331,13 @@ local getcustomasset = getcustomasset
                         clamp(
                             start_size.X.Offset + (input.Position.X - start.X),
                             0,
-                            viewport_x - frame.AbsoluteSize.X
+                            viewport_x - frame.Size.X.Offset
                         ),
                         0,
                         math.clamp(
                             start_size.Y.Offset + (input.Position.Y - start.Y),
                             0,
-                            viewport_y - frame.AbsoluteSize.Y
+                            viewport_y - frame.Size.Y.Offset
                         )
                     )
 
@@ -360,16 +349,13 @@ local getcustomasset = getcustomasset
 
         function library:convert(str)
             local values = {}
-            for value in string.gmatch(str, "[%d%.]+") do
-                local num = tonumber(value)
-                if num then
-                    insert(values, num)
-                end
+            for value in string.gmatch(str, "[^,]+") do
+                insert(values, tonumber(value))
             end
-            if #values >= 3 then              
-                return values[1], values[2], values[3], values[4] or 1
+            if #values == 4 then              
+                return unpack(values)
             else 
-                return nil
+                return
             end
         end
         
@@ -390,7 +376,7 @@ local getcustomasset = getcustomasset
         function library:update_config_list() 
             if not config_holder then return end
             local list = {}
-            for idx, file in pairs(listfiles(library.directory .. "/configs")) do
+            for idx, file in listfiles(library.directory .. "/configs") do
                 local name = file:gsub(library.directory .. "/configs\\", ""):gsub(".cfg", ""):gsub(library.directory .. "\\configs\\", ""):gsub(library.directory .. "/configs/", "")
                 list[#list + 1] = name
             end
@@ -399,7 +385,7 @@ local getcustomasset = getcustomasset
 
         function library:get_config()
             local Config = {}
-            for _, v in pairs(flags) do
+            for _, v in next, flags do
                 if type(v) == "table" and v.key then
                     Config[_] = {active = v.active, mode = v.mode, key = tostring(v.key)}
                 elseif type(v) == "table" and v["Transparency"] and v["Color"] then
@@ -412,15 +398,14 @@ local getcustomasset = getcustomasset
         end
 
         function library:load_config(config_json) 
-            local s, config = pcall(function() return http_service:JSONDecode(config_json) end)
-            if not s or type(config) ~= "table" then return end
-            for _, v in pairs(config) do 
+            local config = http_service:JSONDecode(config_json)
+            for _, v in config do 
                 local function_set = library.config_flags[_]
                 if _ == "config_name_list" then continue end
                 if function_set then 
                     if type(v) == "table" and v["Transparency"] and v["Color"] then
                         function_set(hex(v["Color"]), v["Transparency"])
-                    elseif type(v) == "table" and v["active"] ~= nil then 
+                    elseif type(v) == "table" and v["active"] then 
                         function_set(v)
                     else
                         function_set(v)
@@ -435,21 +420,16 @@ local getcustomasset = getcustomasset
         end 
 
         function library:apply_theme(instance, theme, property) 
-            if themes.utility[theme] then
-                if not themes.utility[theme][property] then
-                    themes.utility[theme][property] = {}
-                end
+            if themes.utility[theme] and themes.utility[theme][property] then
                 insert(themes.utility[theme][property], instance)
             end
         end
 
         function library:update_theme(theme_name, color_val)
             if themes.utility[theme_name] then
-                for property, objects in pairs(themes.utility[theme_name]) do
-                    for _, object in pairs(objects) do
-                        if object and object.Parent then
-                            pcall(function() object[property] = color_val end)
-                        end
+                for property, objects in themes.utility[theme_name] do
+                    for _, object in objects do
+                        object[property] = color_val
                     end
                 end
                 themes.preset[theme_name] = color_val
@@ -484,7 +464,7 @@ local getcustomasset = getcustomasset
 
         function library:create(instance, options)
             local ins = Instance.new(instance) 
-            for prop, value in pairs(options) do 
+            for prop, value in options do 
                 ins[prop] = value
             end
             return ins 
@@ -495,13 +475,12 @@ local getcustomasset = getcustomasset
             if library[ "other" ] then library[ "other" ]:Destroy() end 
             if library[ "open_gui" ] then library[ "open_gui" ]:Destroy() end
             if library[ "key_gui" ] then library[ "key_gui" ]:Destroy() end
-            if library[ "cache" ] then library[ "cache" ]:Destroy() end
             
             if lighting:FindFirstChild("MileniumBlur") then
                 lighting.MileniumBlur:Destroy()
             end
 
-            for index, connection in pairs(library.connections) do 
+            for index, connection in library.connections do 
                 connection:Disconnect() 
                 connection = nil 
             end
@@ -640,19 +619,10 @@ local getcustomasset = getcustomasset
             main_frame.Position = original
         end
 
-        local function check_key(input)
-            if type(settings.Key) == "table" then
-                return table.find(settings.Key, input) ~= nil
-            elseif type(settings.Key) == "string" then
-                return settings.Key == input
-            end
-            return false
-        end
-
         local key_file = "MileniumKey_" .. game.PlaceId .. ".txt"
         if settings.SaveKey and isfile(key_file) then
-             local s, saved = pcall(function() return readfile(key_file) end)
-             if s and saved and check_key(saved) then
+             local saved = readfile(key_file)
+             if find(settings.Key, saved) then
                 library.authorized = true
                 tween_service:Create(blur, TweenInfo.new(0.5), {Size = 0}):Play()
                 key_gui:Destroy()
@@ -663,9 +633,9 @@ local getcustomasset = getcustomasset
         end
 
         check_btn.MouseButton1Click:Connect(function()
-            if check_key(input_box.Text) then
-                if settings.SaveKey and writefile then
-                    pcall(function() writefile(key_file, input_box.Text) end)
+            if find(settings.Key, input_box.Text) then
+                if settings.SaveKey then
+                    writefile(key_file, input_box.Text)
                 end
                 library.authorized = true
                 
@@ -694,7 +664,7 @@ local getcustomasset = getcustomasset
         end)
         
         link_btn.MouseButton1Click:Connect(function()
-            if settings.SecondAction and settings.SecondAction.Type == "Link" and setclipboard then
+            if settings.SecondAction.Type == "Link" then
                 setclipboard(settings.SecondAction.Parameter)
                 link_btn.Text = "Copied to Clipboard!"
                 task.wait(1)
@@ -716,9 +686,9 @@ local getcustomasset = getcustomasset
                 key_system_enabled = properties.KeySystem or false;
                 key_settings = properties.KeySettings or {};
 
-                selected_tab = nil;
+                selected_tab;
                 items = {};
-                tween = nil;
+                tween;
             }
             
             local init_parent = coregui
@@ -752,11 +722,6 @@ local getcustomasset = getcustomasset
                 IgnoreGuiInset = true;
             });
 
-            library[ "cache" ] = library:create( "Folder" , {
-                Parent = library[ "items" ];
-                Name = "Cache";
-            });
-
             local items = cfg.items; do
                 items[ "main" ] = library:create( "Frame" , {
                     Parent = library[ "items" ];
@@ -769,17 +734,8 @@ local getcustomasset = getcustomasset
                 }); items[ "main" ].Position = dim2(0, items[ "main" ].AbsolutePosition.X, 0, items[ "main" ].AbsolutePosition.Y)
                 library:apply_theme(items["main"], "background", "BackgroundColor3")
 
-                local main_scale = library:create("UIScale", {
-                    Parent = items["main"],
-                    Scale = 1
-                })
-
                 local original_size = cfg.size
                 local original_pos = items["main"].Position
-
-                items["main"]:GetPropertyChangedSignal("Position"):Connect(function()
-                    original_pos = items["main"].Position
-                end)
 
                 library:create( "UICorner" , {
                     Parent = items[ "main" ];
@@ -787,7 +743,7 @@ local getcustomasset = getcustomasset
                 });
                 
                 local stroke = library:create( "UIStroke" , {
-                    Color = themes.preset.border; 
+                    Color = themes.preset.border; -- Using Border theme
                     Parent = items[ "main" ];
                     ApplyStrokeMode = Enum.ApplyStrokeMode.Border
                 }); library:apply_theme(stroke, "border", "Color")
@@ -826,7 +782,7 @@ local getcustomasset = getcustomasset
                 -- 2. MINI-MENU REDESIGN (Left/Right Layout)
                 local mini_frame = library:create("TextButton", {
                     Parent = library["open_gui"],
-                    Size = dim2(0, 300, 0, 36), 
+                    Size = dim2(0, 300, 0, 36), -- Slightly taller for better spacing
                     Position = dim2(0.5, -150, 0, 20),
                     BackgroundColor3 = themes.preset.background,
                     BorderSizePixel = 0,
@@ -863,7 +819,7 @@ local getcustomasset = getcustomasset
                     TextSize = 13,
                     BackgroundTransparency = 1,
                     Size = dim2(0, 0, 1, 0),
-                    Position = dim2(0, 10, 0.5, 0), 
+                    Position = dim2(0, 10, 0.5, 0), -- Left Padding 10
                     AnchorPoint = vec2(0, 0.5),
                     TextXAlignment = Enum.TextXAlignment.Left,
                     AutomaticSize = Enum.AutomaticSize.X
@@ -878,7 +834,7 @@ local getcustomasset = getcustomasset
                     TextSize = 13,
                     BackgroundTransparency = 1,
                     Size = dim2(0, 0, 1, 0),
-                    Position = dim2(1, -10, 0.5, 0), 
+                    Position = dim2(1, -10, 0.5, 0), -- Right Padding 10
                     AnchorPoint = vec2(1, 0.5),
                     TextXAlignment = Enum.TextXAlignment.Right,
                     AutomaticSize = Enum.AutomaticSize.X
@@ -887,11 +843,8 @@ local getcustomasset = getcustomasset
                 -- Stats Updater
                 task.spawn(function()
                     while library and mini_frame.Parent do
-                        local ping = 0
-                        pcall(function()
-                            ping = floor(stats.Network.ServerStatsItem["Data Ping"]:GetValue())
-                        end)
-                        local fps = floor(workspace:GetRealPhysicsFPS())
+                        local ping = math.floor(game:GetService("Stats").Network.ServerStatsItem["Data Ping"]:GetValue())
+                        local fps = math.floor(workspace:GetRealPhysicsFPS())
                         fps_label.Text = "FPS: " .. fps
                         ping_label.Text = "Ping: " .. ping .. "ms"
                         task.wait(1)
@@ -902,26 +855,49 @@ local getcustomasset = getcustomasset
                 mini_frame.MouseButton1Click:Connect(function()
                     library["open_gui"].Enabled = false
                     library["items"].Enabled = true
-                    library["other"].Enabled = true
                     
-                    items["main"].Size = original_size
-                    items["main"].Position = original_pos
-                    main_scale.Scale = 0
+                    items["main"].Size = dim2(0, 0, 0, 0)
+                    items["main"].Position = dim2(0.5, 0, 0.5, 0)
+                    items["main"].BackgroundTransparency = 0
 
-                    library:tween(main_scale, {
-                        Scale = 1
+                    for _, v in pairs(items["main"]:GetDescendants()) do
+                        if v:IsA("GuiObject") and v.Name ~= "Shadow" then 
+                             if v:IsA("TextLabel") or v:IsA("TextButton") then
+                                 library:tween(v, {TextTransparency = 0, BackgroundTransparency = 1}, Enum.EasingStyle.Quad, 0.1)
+                             end
+                        end
+                    end
+
+                    library:tween(items["main"], {
+                        Size = original_size,
+                        Position = original_pos, 
+                        BackgroundTransparency = 0
                     }, Enum.EasingStyle.Elastic, 0.8)
                 end)
 
                 close_button.MouseButton1Click:Connect(function()
-                    library:tween(main_scale, {
-                        Scale = 0
+                    library:tween(items["main"], {
+                        Size = dim2(0, 0, 0, 0),
+                        Position = dim2(0.5, 0, 0.5, 0),
+                        BackgroundTransparency = 1
                     }, Enum.EasingStyle.Back, 0.4)
                     
+                    for _, v in pairs(items["main"]:GetDescendants()) do
+                        if v:IsA("GuiObject") then
+                            library:tween(v, {Transparency = 1}, Enum.EasingStyle.Quad, 0.2)
+                        end
+                    end
+
                     task.wait(0.4)
                     library["items"].Enabled = false
-                    library["other"].Enabled = false
                     library["open_gui"].Enabled = true
+                end)
+
+                -- Update original_pos when dragging ends
+                items["main"].InputEnded:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                        original_pos = items["main"].Position
+                    end
                 end)
                 
                 local side_sep = library:create( "Frame" , {
@@ -984,6 +960,7 @@ local getcustomasset = getcustomasset
                 items[ "title" ] = library:create( "TextLabel" , {
                     FontFace = fonts.font;
                     BorderColor3 = rgb(0, 0, 0);
+                    Text = name;
                     Parent = title_btn;
                     Name = "\0";
                     Text = string.format('<u>%s</u><font color = "rgb(255, 255, 255)">%s</font>', cfg.name, cfg.suffix);
@@ -1123,16 +1100,36 @@ local getcustomasset = getcustomasset
                     BackgroundColor3 = rgb(255, 255, 255)
                 }); library:apply_theme(items[ "other_info" ], "accent", "TextColor3"); 
 
-                -- 3. LOADING ANIMATION (Using UIScale Pop)
+                -- 3. LOADING ANIMATION
                 task.spawn(function()
                     if items["main"] then
-                        items["main"].Size = original_size
-                        main_scale.Scale = 0
+                        items["main"].Size = dim2(0, 0, 0, 0)
+                        items["main"].BackgroundTransparency = 1
+                        
+                        -- Hide contents temporarily
+                        for _, v in pairs(items["main"]:GetDescendants()) do
+                            if v:IsA("GuiObject") and v.Name ~= "Shadow" then
+                                v.Transparency = 1
+                            end
+                        end
                         
                         task.wait(0.1)
                         
                         -- Pop up animation
-                        library:tween(main_scale, {Scale = 1}, Enum.EasingStyle.Back, 0.6)
+                        library:tween(items["main"], {Size = original_size, BackgroundTransparency = 0}, Enum.EasingStyle.Back, 0.6)
+                        
+                        -- Fade in contents
+                        for _, v in pairs(items["main"]:GetDescendants()) do
+                            if v:IsA("GuiObject") and v.Name ~= "Shadow" then
+                                if v:IsA("TextLabel") or v:IsA("TextButton") then
+                                    library:tween(v, {TextTransparency = 0, BackgroundTransparency = 1}, Enum.EasingStyle.Quad, 0.4)
+                                elseif v:IsA("ImageLabel") or v:IsA("ImageButton") then
+                                    library:tween(v, {ImageTransparency = 0, BackgroundTransparency = 1}, Enum.EasingStyle.Quad, 0.4)
+                                elseif v:IsA("UIStroke") then
+                                    library:tween(v, {Transparency = 0}, Enum.EasingStyle.Quad, 0.4)
+                                end
+                            end
+                        end
                     end
                 end)
             end 
@@ -1145,7 +1142,6 @@ local getcustomasset = getcustomasset
             function cfg.toggle_menu(bool)
                 if not library.authorized then return end
                 library[ "items" ].Enabled = bool
-                library[ "other" ].Enabled = bool
                 library[ "open_gui" ].Enabled = not bool
             end 
 
@@ -1170,7 +1166,7 @@ local getcustomasset = getcustomasset
                 icon = properties.icon or properties.Icon or "http://www.roblox.com/asset/?id=6034767608";
                 tabs = properties.tabs or properties.Tabs or {"Main", "Misc.", "Settings"};
                 pages = {}; 
-                current_multi = nil; 
+                current_multi; 
                 items = {};
             } 
 
@@ -1280,7 +1276,7 @@ local getcustomasset = getcustomasset
                         PaddingLeft = dim(0, 7)
                     });                        
 
-                    for _, section in pairs(cfg.tabs) do
+                    for _, section in cfg.tabs do
                         local data = {items = {}} 
 
                         local multi_items = data.items; do 
@@ -1490,7 +1486,7 @@ local getcustomasset = getcustomasset
         function library:seperator(properties)
             local cfg = {items = {}, name = properties.Name or properties.name or "General"}
 
-            local items = cfg.items; do 
+            local items = cfg.items do 
                 items[ "name" ] = library:create( "TextLabel" , {
                     FontFace = fonts.font;
                     TextColor3 = themes.preset.text_dim; 
@@ -1835,6 +1831,7 @@ local getcustomasset = getcustomasset
                 type = options.type and string.lower(options.type) or rand == 1 and "toggle" or "checkbox"; 
 
                 default = options.default or false,
+                folding = options.folding or false, 
                 callback = options.callback or function() end,
 
                 items = {};
@@ -2051,6 +2048,11 @@ local getcustomasset = getcustomasset
                 end
 
                 cfg.callback(bool)
+
+                if cfg.folding then 
+                    elements.Visible = bool
+                end
+
                 flags[cfg.flag] = bool
             end 
             
@@ -2270,11 +2272,7 @@ local getcustomasset = getcustomasset
             function cfg.set(value)
                 cfg.value = clamp(library:round(value, cfg.intervals), cfg.min, cfg.max)
 
-                local denom = cfg.max - cfg.min
-                if denom == 0 then denom = 1 end
-                local fraction = math.clamp((cfg.value - cfg.min) / denom, 0, 1)
-
-                library:tween(items[ "fill" ], {Size = dim2(fraction, fraction == 0 and 0 or -4, 1, 0)}, Enum.EasingStyle.Linear, 0.05)
+                library:tween(items[ "fill" ], {Size = dim2((cfg.value - cfg.min) / (cfg.max - cfg.min), cfg.value == cfg.min and 0 or -4, 0, 2)}, Enum.EasingStyle.Linear, 0.05)
                 items[ "value" ].Text = tostring(cfg.value) .. cfg.suffix
 
                 flags[cfg.flag] = cfg.value
@@ -2334,7 +2332,7 @@ local getcustomasset = getcustomasset
                 multi_items = {};
                 ignore = options.ignore or false;
                 items = {};
-                y_size = 0;
+                y_size;
                 seperator = options.seperator or options.Seperator or true;
             }   
 
@@ -2553,7 +2551,7 @@ local getcustomasset = getcustomasset
                 local a = bool and cfg.y_size or 0
                 library:tween(items[ "dropdown_holder" ], {Size = dim_offset(items[ "dropdown" ].AbsoluteSize.X, a)})
 
-                items[ "dropdown_holder" ].Position = dim2(0, items[ "dropdown" ].AbsolutePosition.X, 0, items[ "dropdown" ].AbsolutePosition.Y + items["dropdown"].AbsoluteSize.Y + 5)
+                items[ "dropdown_holder" ].Position = dim2(0, items[ "dropdown" ].AbsolutePosition.X, 0, items[ "dropdown" ].AbsolutePosition.Y + 80)
                 if not (self.sanity and library.current_open == self) then 
                     library:close_element(cfg)
                 end
@@ -2563,7 +2561,7 @@ local getcustomasset = getcustomasset
                 local selected = {}
                 local isTable = type(value) == "table"
 
-                for _, option in pairs(cfg.option_instances) do 
+                for _, option in cfg.option_instances do 
                     if option.Text == value or (isTable and find(value, option.Text)) then 
                         insert(selected, option.Text)
                         cfg.multi_items = selected
@@ -2580,17 +2578,17 @@ local getcustomasset = getcustomasset
             end
             
             function cfg.refresh_options(list) 
-                cfg.y_size = 9
+                cfg.y_size = 0
 
-                for _, option in pairs(cfg.option_instances) do 
+                for _, option in cfg.option_instances do 
                     option:Destroy() 
                 end
                 
                 cfg.option_instances = {} 
 
-                for _, option in pairs(list) do 
+                for _, option in list do 
                     local button = cfg.render_option(option)
-                    cfg.y_size += button.AbsoluteSize.Y + 5
+                    cfg.y_size += button.AbsoluteSize.Y + 6
                     insert(cfg.option_instances, button)
                     
                     button.MouseButton1Down:Connect(function()
@@ -3105,7 +3103,7 @@ local getcustomasset = getcustomasset
                 
                 items[ "colorpicker_fade" ].BackgroundTransparency = 0
                 items[ "colorpicker_holder" ].Parent = bool and library[ "items" ] or library[ "other" ]
-                items[ "colorpicker_holder" ].Position = dim2(0, items[ "colorpicker" ].AbsolutePosition.X, 0, items[ "colorpicker" ].AbsolutePosition.Y + items[ "colorpicker" ].AbsoluteSize.Y + 5)
+                items[ "colorpicker_holder" ].Position = dim_offset(items[ "colorpicker" ].AbsolutePosition.X, items[ "colorpicker" ].AbsolutePosition.Y + items[ "colorpicker" ].AbsoluteSize.Y + 45)
 
                 library:tween(items[ "colorpicker_fade" ], {BackgroundTransparency = 1}, Enum.EasingStyle.Quad, 0.4)
                 library:tween(items[ "colorpicker_holder" ], {Position = items[ "colorpicker_holder" ].Position + dim_offset(0, 20)}) 
@@ -3123,13 +3121,13 @@ local getcustomasset = getcustomasset
                 end
             end
 
-            function cfg.set(c, alpha)
-                if type(c) == "boolean" then 
+            function cfg.set(color, alpha)
+                if type(color) == "boolean" then 
                     return
                 end 
 
-                if c then 
-                    h, s, v = c:ToHSV()
+                if color then 
+                    h, s, v = color:ToHSV()
                 end
                 
                 if alpha then 
@@ -3157,16 +3155,16 @@ local getcustomasset = getcustomasset
                     Transparency = a 
                 }
                 
-                local current_c = items[ "colorpicker" ].BackgroundColor3
-                items[ "input" ].Text = string.format("%s, %s, %s, ", library:round(current_c.R * 255), library:round(current_c.G * 255), library:round(current_c.B * 255))
+                local color = items[ "colorpicker" ].BackgroundColor3
+                items[ "input" ].Text = string.format("%s, %s, %s, ", library:round(color.R * 255), library:round(color.G * 255), library:round(color.B * 255))
                 items[ "input" ].Text ..= library:round(1 - a, 0.01)
                 
                 cfg.callback(Color, a)
             end
             
             function cfg.update_color() 
-                local ms = uis:GetMouseLocation() 
-                local offset = vec2(ms.X, ms.Y - gui_offset) 
+                local mouse = uis:GetMouseLocation() 
+                local offset = vec2(mouse.X, mouse.Y - gui_offset) 
 
                 if dragging_sat then	
                     s = math.clamp((offset - items["sat"].AbsolutePosition).X / items["sat"].AbsoluteSize.X, 0, 1)
@@ -3214,10 +3212,10 @@ local getcustomasset = getcustomasset
 
             items[ "input" ].FocusLost:Connect(function()
                 local text = items[ "input" ].Text
-                local r, g, b, trans = library:convert(text)
+                local r, g, b, a = library:convert(text)
                 
-                if r and g and b and trans then 
-                    cfg.set(rgb(r, g, b), 1 - trans)
+                if r and g and b and a then 
+                    cfg.set(rgb(r, g, b), 1 - a)
                 end 
             end)
 
@@ -3337,16 +3335,12 @@ local getcustomasset = getcustomasset
             
             function cfg.set(text) 
                 flags[cfg.flag] = text
-                if items[ "input" ].Text ~= text then
-                    items[ "input" ].Text = text
-                end
+                items[ "input" ].Text = text
                 cfg.callback(text)
             end 
             
             items[ "input" ]:GetPropertyChangedSignal("Text"):Connect(function()
-                if flags[cfg.flag] ~= items[ "input" ].Text then
-                    cfg.set(items[ "input" ].Text)
-                end
+                cfg.set(items[ "input" ].Text) 
             end)
 
             items[ "input" ].Focused:Connect(function()
@@ -3496,7 +3490,7 @@ local getcustomasset = getcustomasset
                 -- Mode Holder
                     items[ "dropdown" ] = library:create( "Frame" , {
                         BorderColor3 = rgb(0, 0, 0);
-                        Parent = library["items"];
+                        Parent = library.items;
                         Name = "\0";
                         BackgroundTransparency = 1;
                         Position = dim2(0, 0, 0, 0);
@@ -3534,10 +3528,10 @@ local getcustomasset = getcustomasset
                         CornerRadius = dim(0, 4)
                     });
                     
-                    local opts = {"Hold", "Toggle", "Always"}
+                    local options = {"Hold", "Toggle", "Always"}
                     
                     cfg.y_size = 20
-                    for _, option in ipairs(opts) do                        
+                    for _, option in options do                        
                         local name = library:create( "TextButton" , {
                             FontFace = fonts.font;
                             TextColor3 = themes.preset.text_dim;
@@ -3574,7 +3568,7 @@ local getcustomasset = getcustomasset
             end 
             
             function cfg.modify_mode_color(path) 
-                for _, v in pairs(cfg.hold_instances) do 
+                for _, v in cfg.hold_instances do 
                     v.TextColor3 = rgb(72, 72, 72)
                 end 
                 cfg.hold_instances[path].TextColor3 = themes.preset.accent
@@ -3632,7 +3626,7 @@ local getcustomasset = getcustomasset
             function cfg.set_visible(bool)
                 local size = bool and cfg.y_size or 0
                 library:tween(items[ "dropdown" ], {Size = dim_offset(items[ "keybind_holder" ].AbsoluteSize.X, size)})
-                items[ "dropdown" ].Position = dim2(0, items[ "keybind_holder" ].AbsolutePosition.X, 0, items[ "keybind_holder" ].AbsolutePosition.Y + items[ "keybind_holder" ].AbsoluteSize.Y + 5)
+                items[ "dropdown" ].Position = dim_offset(items[ "keybind_holder" ].AbsolutePosition.X, items[ "keybind_holder" ].AbsolutePosition.Y + items[ "keybind_holder" ].AbsoluteSize.Y + 60)
             end
         
             items[ "keybind_holder" ].MouseButton1Down:Connect(function()
@@ -3841,7 +3835,7 @@ local getcustomasset = getcustomasset
                 flag = properties.flag or library:next_flag();    
                 callback = properties.callback or function() end;
                 data_store = {};        
-                current_element = nil;
+                current_element;
             }
 
             local items = cfg.items; do
@@ -3870,12 +3864,12 @@ local getcustomasset = getcustomasset
             end 
 
             function cfg.refresh_options(options_to_refresh) 
-                for _,option in pairs(cfg.data_store) do 
+                for _,option in cfg.data_store do 
                     option:Destroy()
                 end
                 cfg.data_store = {}
 
-                for _, option_data in pairs(options_to_refresh) do 
+                for _, option_data in options_to_refresh do 
                     local button = library:create( "TextButton" , {
                         FontFace = fonts.small;
                         TextColor3 = rgb(0, 0, 0);
@@ -3949,40 +3943,35 @@ local getcustomasset = getcustomasset
             local section = column:section({name = "Configs", size = 1, default = true, icon = "rbxassetid://139628202576511"})
             config_holder = section:list({options = {"Report", "This", "Error", "To", "Finobe"}, callback = function(option) end, flag = "config_name_list"}); library:update_config_list()
             
-            local config_column = main:column({})
-            local settings_section = config_column:section({name = "Settings", side = "right", size = 1, default = true, icon = "rbxassetid://129380150574313"})
-            settings_section:textbox({name = "Config name:", flag = "config_name_text"})
+            local column = main:column({})
+            local section = column:section({name = "Settings", side = "right", size = 1, default = true, icon = "rbxassetid://129380150574313"})
+            section:textbox({name = "Config name:", flag = "config_name_text"})
             
-            settings_section:button({name = "Save", callback = function() 
+            section:button({name = "Save", callback = function() 
                 local name = flags["config_name_text"] or flags["config_name_list"]
                 if not name or name == "" then return end
-                if writefile then
-                    pcall(function() writefile(library.directory .. "/configs/" .. name .. ".cfg", library:get_config()) end)
-                end
+                writefile(library.directory .. "/configs/" .. name .. ".cfg", library:get_config()) 
                 library:update_config_list() 
                 notifications:create_notification({name = "Configs", info = "Saved config to:\n" .. name}) 
             end}) 
             
-            settings_section:button({name = "Load", callback = function() 
+            section:button({name = "Load", callback = function() 
                 local name = flags["config_name_list"]
                 if not name then return end
                 local path = library.directory .. "/configs/" .. name .. ".cfg"
                 if isfile(path) then
-                    local s, contents = pcall(function() return readfile(path) end)
-                    if s and contents then
-                        library:load_config(contents)  
-                        library:update_config_list() 
-                        notifications:create_notification({name = "Configs", info = "Loaded config:\n" .. name}) 
-                    end
+                    library:load_config(readfile(path))  
+                    library:update_config_list() 
+                    notifications:create_notification({name = "Configs", info = "Loaded config:\n" .. name}) 
                 end
             end})
             
-            settings_section:button({name = "Delete", callback = function() 
+            section:button({name = "Delete", callback = function() 
                 local name = flags["config_name_list"]
                 if not name then return end
                 local path = library.directory .. "/configs/" .. name .. ".cfg"
                 if isfile(path) then
-                    pcall(function() delfile(path) end)
+                    delfile(path)  
                     library:update_config_list() 
                     notifications:create_notification({name = "Configs", info = "Deleted config:\n" .. name}) 
                 else
@@ -3990,15 +3979,15 @@ local getcustomasset = getcustomasset
                 end
             end})
             
-            settings_section:colorpicker({name = "Menu Accent", callback = function(color, alpha) library:update_theme("accent", color) end, color = themes.preset.accent})
-            settings_section:keybind({name = "Menu Bind", callback = function(bool) window.toggle_menu(bool) end, default = true})
+            section:colorpicker({name = "Menu Accent", callback = function(color, alpha) library:update_theme("accent", color) end, color = themes.preset.accent})
+            section:keybind({name = "Menu Bind", callback = function(bool) window.toggle_menu(bool) end, default = true})
         end
     --
 
     -- Notification Library
         function notifications:refresh_notifs() 
             local offset = 50
-            for i, v in pairs(notifications.notifs) do
+            for i, v in notifications.notifs do
                 local Position = vec2(20, offset)
                 library:tween(v, {Position = dim_offset(Position.X, Position.Y)}, Enum.EasingStyle.Quad, 0.4)
                 offset += (v.AbsoluteSize.Y + 10)
@@ -4007,13 +3996,10 @@ local getcustomasset = getcustomasset
         end
         
         function notifications:fade(path, is_fading)
-            local fading
-        
-        function notifications:fade(path, is_fading)
             local fading = is_fading and 1 or 0 
             library:tween(path, {BackgroundTransparency = fading}, Enum.EasingStyle.Quad, 1)
 
-            for _, instance in pairs(path:GetDescendants()) do 
+            for _, instance in path:GetDescendants() do 
                 if not instance:IsA("GuiObject") then 
                     if instance:IsA("UIStroke") then
                         library:tween(instance, {Transparency = fading}, Enum.EasingStyle.Quad, 1)
@@ -4034,7 +4020,7 @@ local getcustomasset = getcustomasset
                 info = options.info or "This is extra info!";
                 lifetime = options.lifetime or 3;
                 items = {};
-                outline = nil;
+                outline;
             }
 
             local items = cfg.items; do 
@@ -4148,4 +4134,3 @@ local getcustomasset = getcustomasset
 -- 
 
 return library
-
