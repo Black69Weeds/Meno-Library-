@@ -1,4 +1,7 @@
 
+
+
+
 --[[
     Meno Library (Remastered: Premium Theme & Animation)
     - Re-themed to "Nightfall"
@@ -99,16 +102,20 @@ end
             text = rgb(240, 240, 245),         -- White-ish text
             text_dim = rgb(130, 130, 140)      -- Dimmed grey text
         }, 
-
-        utility = {
-            accent = { BackgroundColor3 = {}, TextColor3 = {}, ImageColor3 = {}, ScrollBarImageColor3 = {} },
-            background = { BackgroundColor3 = {} },
-            container = { BackgroundColor3 = {}, BorderColor3 = {} },
-            text = { TextColor3 = {} },
-            text_dim = { TextColor3 = {}, ImageColor3 = {} },
-            border = { BorderColor3 = {}, Color = {} } -- Added utility for UIStroke
-        }
+        utility = {}
     }
+    
+    -- Dynamically generate theme utility arrays to prevent missing property errors
+    for k, v in pairs(themes.preset) do
+        themes.utility[k] = { 
+            BackgroundColor3 = {}, 
+            TextColor3 = {}, 
+            ImageColor3 = {}, 
+            ScrollBarImageColor3 = {}, 
+            BorderColor3 = {}, 
+            Color = {} 
+        }
+    end
     
     -- Theme List
     local theme_list = {
@@ -143,21 +150,12 @@ end
     local current_theme_idx = 1
 
     local keys = {
-        [Enum.KeyCode.LeftShift] = "LS",[Enum.KeyCode.RightShift] = "RS",
-        [Enum.KeyCode.LeftControl] = "LC",[Enum.KeyCode.RightControl] = "RC",
-        [Enum.KeyCode.Insert] = "INS", [Enum.KeyCode.Backspace] = "BS",
-        [Enum.KeyCode.Return] = "Ent", [Enum.KeyCode.LeftAlt] = "LA",
-        [Enum.KeyCode.RightAlt] = "RA", [Enum.KeyCode.CapsLock] = "CAPS",
-        [Enum.KeyCode.One] = "1", [Enum.KeyCode.Two] = "2", [Enum.KeyCode.Three] = "3",
-        [Enum.KeyCode.Four] = "4", [Enum.KeyCode.Five] = "5", [Enum.KeyCode.Six] = "6",
-        [Enum.KeyCode.Seven] = "7",[Enum.KeyCode.Eight] = "8", [Enum.KeyCode.Nine] = "9",[Enum.KeyCode.Zero] = "0", [Enum.KeyCode.KeypadOne] = "Num1",[Enum.KeyCode.KeypadTwo] = "Num2",
-        [Enum.KeyCode.KeypadThree] = "Num3", [Enum.KeyCode.KeypadFour] = "Num4", [Enum.KeyCode.KeypadFive] = "Num5",
-        [Enum.KeyCode.KeypadSix] = "Num6",[Enum.KeyCode.KeypadSeven] = "Num7", [Enum.KeyCode.KeypadEight] = "Num8",
-        [Enum.KeyCode.KeypadNine] = "Num9",[Enum.KeyCode.KeypadZero] = "Num0", [Enum.KeyCode.Minus] = "-",[Enum.KeyCode.Equals] = "=", [Enum.KeyCode.Tilde] = "~", [Enum.KeyCode.LeftBracket] = "[",
-        [Enum.KeyCode.RightBracket] = "]", [Enum.KeyCode.RightParenthesis] = ")", [Enum.KeyCode.LeftParenthesis] = "(",[Enum.KeyCode.Semicolon] = ",", [Enum.KeyCode.Quote] = "'", [Enum.KeyCode.BackSlash] = "\\",
-        [Enum.KeyCode.Comma] = ",", [Enum.KeyCode.Period] = ".",[Enum.KeyCode.Slash] = "/",
-        [Enum.KeyCode.Asterisk] = "*",[Enum.KeyCode.Plus] = "+", [Enum.KeyCode.Period] = ".",
-        [Enum.KeyCode.Backquote] = "`", [Enum.UserInputType.MouseButton1] = "MB1",[Enum.UserInputType.MouseButton2] = "MB2", [Enum.UserInputType.MouseButton3] = "MB3",
+        [Enum.KeyCode.LeftShift] = "LS",[Enum.KeyCode.RightShift] = "RS",[Enum.KeyCode.LeftControl] = "LC",[Enum.KeyCode.RightControl] = "RC",[Enum.KeyCode.Insert] = "INS", [Enum.KeyCode.Backspace] = "BS",[Enum.KeyCode.Return] = "Ent", [Enum.KeyCode.LeftAlt] = "LA",[Enum.KeyCode.RightAlt] = "RA", [Enum.KeyCode.CapsLock] = "CAPS",[Enum.KeyCode.One] = "1", [Enum.KeyCode.Two] = "2",[Enum.KeyCode.Three] = "3",
+        [Enum.KeyCode.Four] = "4",[Enum.KeyCode.Five] = "5", [Enum.KeyCode.Six] = "6",[Enum.KeyCode.Seven] = "7",[Enum.KeyCode.Eight] = "8", [Enum.KeyCode.Nine] = "9",[Enum.KeyCode.Zero] = "0",[Enum.KeyCode.KeypadOne] = "Num1",[Enum.KeyCode.KeypadTwo] = "Num2",
+        [Enum.KeyCode.KeypadThree] = "Num3",[Enum.KeyCode.KeypadFour] = "Num4", [Enum.KeyCode.KeypadFive] = "Num5",[Enum.KeyCode.KeypadSix] = "Num6",[Enum.KeyCode.KeypadSeven] = "Num7", [Enum.KeyCode.KeypadEight] = "Num8",[Enum.KeyCode.KeypadNine] = "Num9",[Enum.KeyCode.KeypadZero] = "Num0",[Enum.KeyCode.Minus] = "-",[Enum.KeyCode.Equals] = "=", [Enum.KeyCode.Tilde] = "~", [Enum.KeyCode.LeftBracket] = "[",
+        [Enum.KeyCode.RightBracket] = "]", [Enum.KeyCode.RightParenthesis] = ")", [Enum.KeyCode.LeftParenthesis] = "(",[Enum.KeyCode.Semicolon] = ",", [Enum.KeyCode.Quote] = "'",[Enum.KeyCode.BackSlash] = "\\",
+        [Enum.KeyCode.Comma] = ",",[Enum.KeyCode.Period] = ".",[Enum.KeyCode.Slash] = "/",
+        [Enum.KeyCode.Asterisk] = "*",[Enum.KeyCode.Plus] = "+", [Enum.KeyCode.Period] = ".",[Enum.KeyCode.Backquote] = "`", [Enum.UserInputType.MouseButton1] = "MB1",[Enum.UserInputType.MouseButton2] = "MB2", [Enum.UserInputType.MouseButton3] = "MB3",
         [Enum.KeyCode.Escape] = "ESC", [Enum.KeyCode.Space] = "SPC",
     }
         
@@ -218,6 +216,12 @@ end
 
 -- Library functions 
     -- Misc functions
+        function library:connection(signal, callback)
+            local connection = signal:Connect(callback)
+            insert(library.connections, connection)
+            return connection 
+        end
+
         function library:tween(obj, properties, easing_style, time) 
             local tween = tween_service:Create(obj, TweenInfo.new(time or 0.25, easing_style or Enum.EasingStyle.Quint, Enum.EasingDirection.InOut, 0, false, 0), properties):Play()
             return tween
@@ -239,7 +243,7 @@ end
             local start 
             local og_size = frame.Size  
 
-            Frame.InputBegan:Connect(function(input)
+            library:connection(Frame.InputBegan, function(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
                     resizing = true
                     start = input.Position
@@ -247,13 +251,12 @@ end
                 end
             end)
 
-            Frame.InputEnded:Connect(function(input)
+            library:connection(Frame.InputEnded, function(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
                     resizing = false
                 end
             end)
 
-            -- Memory Leak Fix: Use library:connection for global UserInputService events
             library:connection(uis.InputChanged, function(input, game_event) 
                 if resizing and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
                     local viewport_x = camera.ViewportSize.X
@@ -304,7 +307,7 @@ end
             local start_size = frame.Position
             local start 
 
-            frame.InputBegan:Connect(function(input)
+            library:connection(frame.InputBegan, function(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
                     dragging = true
                     start = input.Position
@@ -312,13 +315,12 @@ end
                 end
             end)
 
-            frame.InputEnded:Connect(function(input)
+            library:connection(frame.InputEnded, function(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
                     dragging = false
                 end
             end)
 
-            -- Memory Leak Fix: Use library:connection for global UserInputService events
             library:connection(uis.InputChanged, function(input, game_event) 
                 if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
                     local viewport_x = camera.ViewportSize.X
@@ -374,16 +376,19 @@ end
         function library:update_config_list() 
             if not config_holder then return end
             local list = {}
-            for idx, file in listfiles(library.directory .. "/configs") do
-                local name = file:gsub(library.directory .. "/configs\\", ""):gsub(".cfg", ""):gsub(library.directory .. "\\configs\\", ""):gsub(library.directory .. "/configs/", "")
-                list[#list + 1] = name
+            -- Regex file matcher fixes path directory slashes mismatch on various executors
+            for _, file in ipairs(listfiles(library.directory .. "/configs")) do
+                local name = file:match("([^/\\]+)%.cfg$")
+                if name then
+                    list[#list + 1] = name
+                end
             end
             config_holder.refresh_options(list)
         end 
 
         function library:get_config()
             local Config = {}
-            for _, v in next, flags do
+            for _, v in pairs(flags) do
                 if type(v) == "table" and v.key then
                     Config[_] = {active = v.active, mode = v.mode, key = tostring(v.key)}
                 elseif type(v) == "table" and v["Transparency"] and v["Color"] then
@@ -396,18 +401,24 @@ end
         end
 
         function library:load_config(config_json) 
-            local config = http_service:JSONDecode(config_json)
-            for _, v in config do 
-                local function_set = library.config_flags[_]
-                if _ == "config_name_list" then continue end
+            -- Safely decode to prevent string breaks
+            local success, config = pcall(function() return http_service:JSONDecode(config_json) end)
+            if not success or type(config) ~= "table" then return end
+
+            for flag, v in pairs(config) do 
+                local function_set = library.config_flags[flag]
+                if flag == "config_name_list" or flag == "config_name_text" then continue end
                 if function_set then 
-                    if type(v) == "table" and v["Transparency"] and v["Color"] then
-                        function_set(hex(v["Color"]), v["Transparency"])
-                    elseif type(v) == "table" and v["active"] then 
-                        function_set(v)
-                    else
-                        function_set(v)
-                    end
+                    -- PCALL protects config from halting if one flag is corrupted or missing
+                    pcall(function()
+                        if type(v) == "table" and v["Transparency"] and v["Color"] then
+                            function_set(hex(v["Color"]), v["Transparency"])
+                        elseif type(v) == "table" and v["active"] ~= nil then 
+                            function_set(v)
+                        else
+                            function_set(v)
+                        end
+                    end)
                 end 
             end 
         end 
@@ -423,14 +434,13 @@ end
             end
         end
 
-        -- Theme Application Race Condition Fix: Clean up destroyed UI elements from the theme registry
         function library:update_theme(theme_name, color_val)
             if themes.utility[theme_name] then
-                for property, objects in themes.utility[theme_name] do
+                for property, objects in pairs(themes.utility[theme_name]) do
                     local valid_objects = {}
                     for _, object in ipairs(objects) do
                         if object and object.Parent then
-                            object[property] = color_val
+                            pcall(function() object[property] = color_val end)
                             insert(valid_objects, object)
                         end
                     end
@@ -447,12 +457,6 @@ end
             library:update_theme("border", theme_data.border)
             library:update_theme("text", theme_data.text)
             library:update_theme("text_dim", theme_data.text_dim)
-        end
-
-        function library:connection(signal, callback)
-            local connection = signal:Connect(callback)
-            insert(library.connections, connection)
-            return connection 
         end
 
         function library:close_element(new_path) 
@@ -637,7 +641,7 @@ end
              end
         end
 
-        check_btn.MouseButton1Click:Connect(function()
+        library:connection(check_btn.MouseButton1Click, function()
             if find(settings.Key, input_box.Text) then
                 if settings.SaveKey then
                     writefile(key_file, input_box.Text)
@@ -668,7 +672,7 @@ end
             end
         end)
         
-        link_btn.MouseButton1Click:Connect(function()
+        library:connection(link_btn.MouseButton1Click, function()
             if settings.SecondAction.Type == "Link" then
                 setclipboard(settings.SecondAction.Parameter)
                 link_btn.Text = "Copied to Clipboard!"
@@ -777,10 +781,10 @@ end
                     Name = "CloseButton"
                 }); library:apply_theme(close_button, "text_dim", "TextColor3")
 
-                close_button.MouseEnter:Connect(function()
+                library:connection(close_button.MouseEnter, function()
                     library:tween(close_button, {TextColor3 = rgb(255, 50, 50)})
                 end)
-                close_button.MouseLeave:Connect(function()
+                library:connection(close_button.MouseLeave, function()
                     library:tween(close_button, {TextColor3 = themes.preset.text_dim})
                 end)
 
@@ -857,8 +861,7 @@ end
                 end)
 
                 -- CLICK TO OPEN LOGIC
-                -- Toggle/Element Visibility Fix: Replaced generic Transparency tween
-                mini_frame.MouseButton1Click:Connect(function()
+                library:connection(mini_frame.MouseButton1Click, function()
                     library["open_gui"].Enabled = false
                     library["items"].Enabled = true
                     
@@ -867,20 +870,17 @@ end
                     items["main"].BackgroundTransparency = 0
                     items["main"].ClipsDescendants = true
                     
-                    -- Keep shadow invisible while opening
                     if items["shadow"] then items["shadow"].ImageTransparency = 1 end
 
                     for _, v in pairs(items["main"]:GetDescendants()) do
-                        if v:IsA("GuiObject") and v.Name ~= "Shadow" then 
-                             if v:IsA("TextLabel") or v:IsA("TextButton") or v:IsA("TextBox") then
-                                 library:tween(v, {TextTransparency = 0}, Enum.EasingStyle.Quad, 0.1)
-                             end
-                             if v:IsA("ImageLabel") or v:IsA("ImageButton") then
-                                 library:tween(v, {ImageTransparency = 0}, Enum.EasingStyle.Quad, 0.1)
-                             end
-                             if v:IsA("UIStroke") then
-                                 library:tween(v, {Transparency = 0}, Enum.EasingStyle.Quad, 0.1)
-                             end
+                        if (v:IsA("GuiObject") or v:IsA("UIStroke")) and v.Name ~= "Shadow" then 
+                            local goal = {}
+                            if v:GetAttribute("OrigBg") ~= nil then goal.BackgroundTransparency = v:GetAttribute("OrigBg") end
+                            if (v:IsA("TextLabel") or v:IsA("TextButton") or v:IsA("TextBox")) and v:GetAttribute("OrigText") ~= nil then goal.TextTransparency = v:GetAttribute("OrigText") end
+                            if (v:IsA("ImageLabel") or v:IsA("ImageButton")) and v:GetAttribute("OrigImg") ~= nil then goal.ImageTransparency = v:GetAttribute("OrigImg") end
+                            if v:IsA("UIStroke") and v:GetAttribute("OrigStroke") ~= nil then goal.Transparency = v:GetAttribute("OrigStroke") end
+                            
+                            library:tween(v, goal, Enum.EasingStyle.Quad, 0.1)
                         end
                     end
 
@@ -899,8 +899,7 @@ end
                     end)
                 end)
 
-                -- Toggle/Element Visibility Fix: Replaced generic Transparency tween
-                close_button.MouseButton1Click:Connect(function()
+                library:connection(close_button.MouseButton1Click, function()
                     items["main"].ClipsDescendants = true
                     library:tween(items["main"], {
                         Size = dim2(0, 0, 0, 0),
@@ -913,16 +912,18 @@ end
                     end
 
                     for _, v in pairs(items["main"]:GetDescendants()) do
-                        if v:IsA("GuiObject") and v.Name ~= "Shadow" then
-                            if v:IsA("TextLabel") or v:IsA("TextButton") or v:IsA("TextBox") then
-                                library:tween(v, {TextTransparency = 1}, Enum.EasingStyle.Quad, 0.2)
-                            end
-                            if v:IsA("ImageLabel") or v:IsA("ImageButton") then
-                                library:tween(v, {ImageTransparency = 1}, Enum.EasingStyle.Quad, 0.2)
-                            end
-                            if v:IsA("UIStroke") then
-                                library:tween(v, {Transparency = 1}, Enum.EasingStyle.Quad, 0.2)
-                            end
+                        if (v:IsA("GuiObject") or v:IsA("UIStroke")) and v.Name ~= "Shadow" then
+                            if v:GetAttribute("OrigBg") == nil then v:SetAttribute("OrigBg", v.BackgroundTransparency) end
+                            if (v:IsA("TextLabel") or v:IsA("TextButton") or v:IsA("TextBox")) and v:GetAttribute("OrigText") == nil then v:SetAttribute("OrigText", v.TextTransparency) end
+                            if (v:IsA("ImageLabel") or v:IsA("ImageButton")) and v:GetAttribute("OrigImg") == nil then v:SetAttribute("OrigImg", v.ImageTransparency) end
+                            if v:IsA("UIStroke") and v:GetAttribute("OrigStroke") == nil then v:SetAttribute("OrigStroke", v.Transparency) end
+
+                            local goal = {BackgroundTransparency = 1}
+                            if v:IsA("TextLabel") or v:IsA("TextButton") or v:IsA("TextBox") then goal.TextTransparency = 1 end
+                            if v:IsA("ImageLabel") or v:IsA("ImageButton") then goal.ImageTransparency = 1 end
+                            if v:IsA("UIStroke") then goal.Transparency = 1 end
+                            
+                            library:tween(v, goal, Enum.EasingStyle.Quad, 0.2)
                         end
                     end
 
@@ -932,7 +933,7 @@ end
                 end)
 
                 -- Update original_pos when dragging ends
-                items["main"].InputEnded:Connect(function(input)
+                library:connection(items["main"].InputEnded, function(input)
                     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
                         original_pos = items["main"].Position
                     end
@@ -998,7 +999,6 @@ end
                 items[ "title" ] = library:create( "TextLabel" , {
                     FontFace = fonts.font;
                     BorderColor3 = rgb(0, 0, 0);
-                    Text = name;
                     Parent = title_btn;
                     Name = "\0";
                     Text = string.format('<u>%s</u><font color = "rgb(255, 255, 255)">%s</font>', cfg.name, cfg.suffix);
@@ -1012,7 +1012,7 @@ end
                     BackgroundColor3 = rgb(255, 255, 255)
                 }); library:apply_theme(items[ "title" ], "accent", "TextColor3");
                 
-                title_btn.MouseButton1Click:Connect(function()
+                library:connection(title_btn.MouseButton1Click, function()
                     current_theme_idx = current_theme_idx + 1
                     if current_theme_idx > #theme_list then current_theme_idx = 1 end
                     local th = theme_list[current_theme_idx]
@@ -1139,50 +1139,44 @@ end
                 }); library:apply_theme(items[ "other_info" ], "accent", "TextColor3"); 
 
                 -- 3. LOADING ANIMATION
-                -- Toggle/Element Visibility Fix: Replaced generic Transparency tween
                 task.spawn(function()
                     if items["main"] then
                         items["main"].Size = dim2(0, 0, 0, 0)
                         items["main"].BackgroundTransparency = 1
                         items["main"].ClipsDescendants = true
                         
-                        -- Hide contents temporarily
                         for _, v in pairs(items["main"]:GetDescendants()) do
-                            if v:IsA("GuiObject") and v.Name ~= "Shadow" then
-                                if v:IsA("TextLabel") or v:IsA("TextButton") or v:IsA("TextBox") then
-                                    v.TextTransparency = 1
-                                end
-                                if v:IsA("ImageLabel") or v:IsA("ImageButton") then
-                                    v.ImageTransparency = 1
-                                end
-                                if v:IsA("UIStroke") then
-                                    v.Transparency = 1
-                                end
+                            if (v:IsA("GuiObject") or v:IsA("UIStroke")) and v.Name ~= "Shadow" then
+                                if v:GetAttribute("OrigBg") == nil then v:SetAttribute("OrigBg", v.BackgroundTransparency) end
+                                if (v:IsA("TextLabel") or v:IsA("TextButton") or v:IsA("TextBox")) and v:GetAttribute("OrigText") == nil then v:SetAttribute("OrigText", v.TextTransparency) end
+                                if (v:IsA("ImageLabel") or v:IsA("ImageButton")) and v:GetAttribute("OrigImg") == nil then v:SetAttribute("OrigImg", v.ImageTransparency) end
+                                if v:IsA("UIStroke") and v:GetAttribute("OrigStroke") == nil then v:SetAttribute("OrigStroke", v.Transparency) end
+
+                                v.BackgroundTransparency = 1
+                                if v:IsA("TextLabel") or v:IsA("TextButton") or v:IsA("TextBox") then v.TextTransparency = 1 end
+                                if v:IsA("ImageLabel") or v:IsA("ImageButton") then v.ImageTransparency = 1 end
+                                if v:IsA("UIStroke") then v.Transparency = 1 end
                             end
                         end
                         
                         if items["shadow"] then items["shadow"].ImageTransparency = 1 end
                         task.wait(0.1)
                         
-                        -- Pop up animation
                         library:tween(items["main"], {Size = original_size, BackgroundTransparency = 0}, Enum.EasingStyle.Back, 0.6)
                         
                         if items["shadow"] then
                             library:tween(items["shadow"], {ImageTransparency = 0}, Enum.EasingStyle.Quad, 0.6)
                         end
 
-                        -- Fade in contents
                         for _, v in pairs(items["main"]:GetDescendants()) do
-                            if v:IsA("GuiObject") and v.Name ~= "Shadow" then
-                                if v:IsA("TextLabel") or v:IsA("TextButton") or v:IsA("TextBox") then
-                                    library:tween(v, {TextTransparency = 0}, Enum.EasingStyle.Quad, 0.4)
-                                end
-                                if v:IsA("ImageLabel") or v:IsA("ImageButton") then
-                                    library:tween(v, {ImageTransparency = 0}, Enum.EasingStyle.Quad, 0.4)
-                                end
-                                if v:IsA("UIStroke") then
-                                    library:tween(v, {Transparency = 0}, Enum.EasingStyle.Quad, 0.4)
-                                end
+                            if (v:IsA("GuiObject") or v:IsA("UIStroke")) and v.Name ~= "Shadow" then
+                                local goal = {}
+                                if v:GetAttribute("OrigBg") ~= nil then goal.BackgroundTransparency = v:GetAttribute("OrigBg") end
+                                if (v:IsA("TextLabel") or v:IsA("TextButton") or v:IsA("TextBox")) and v:GetAttribute("OrigText") ~= nil then goal.TextTransparency = v:GetAttribute("OrigText") end
+                                if (v:IsA("ImageLabel") or v:IsA("ImageButton")) and v:GetAttribute("OrigImg") ~= nil then goal.ImageTransparency = v:GetAttribute("OrigImg") end
+                                if v:IsA("UIStroke") and v:GetAttribute("OrigStroke") ~= nil then goal.Transparency = v:GetAttribute("OrigStroke") end
+                                
+                                library:tween(v, goal, Enum.EasingStyle.Quad, 0.4)
                             end
                         end
                         
@@ -1225,7 +1219,7 @@ end
                 icon = properties.icon or properties.Icon or "http://www.roblox.com/asset/?id=6034767608";
                 tabs = properties.tabs or properties.Tabs or {"Main", "Misc.", "Settings"};
                 pages = {}; 
-                current_multi; 
+                current_multi = nil; 
                 items = {};
             } 
 
@@ -1335,7 +1329,7 @@ end
                         PaddingLeft = dim(0, 7)
                     });                        
 
-                    for _, section in cfg.tabs do
+                    for _, section in ipairs(cfg.tabs) do
                         local data = {items = {}} 
 
                         local multi_items = data.items; do 
@@ -1478,7 +1472,7 @@ end
                             library:close_element()
 						end
 
-						multi_items[ "button" ].MouseButton1Down:Connect(function()
+						library:connection(multi_items[ "button" ].MouseButton1Down, function()
 							data.open_page() 
 						end)
 
@@ -1531,12 +1525,12 @@ end
                 library:close_element()
             end
 
-            items[ "button" ].MouseButton1Down:Connect(function()
+            library:connection(items[ "button" ].MouseButton1Down, function()
                 cfg.open_tab()
             end)
             
             if not self.selected_tab then 
-                cfg.open_tab(true) 
+                cfg.open_tab() 
             end
 
             return unpack(cfg.pages)
@@ -1863,7 +1857,7 @@ end
             end;
 
             if cfg.fading_toggle then
-                items[ "button" ].MouseButton1Click:Connect(function()
+                library:connection(items[ "button" ].MouseButton1Click, function()
                     cfg.default = not cfg.default 
                     cfg.toggle_section(cfg.default) 
                 end)
@@ -1880,14 +1874,13 @@ end
         end  
 
         function library:toggle(options) 
-            local rand = math.random(1, 2) 
             local cfg = {
-                enabled = options.enabled or nil,
+                enabled = options.default or false,
                 name = options.name or "Toggle",
                 info = options.info or nil,
                 flag = options.flag or library:next_flag(),
                 
-                type = options.type and string.lower(options.type) or rand == 1 and "toggle" or "checkbox"; 
+                type = options.type and string.lower(options.type) or "toggle", 
 
                 default = options.default or false,
                 folding = options.folding or false, 
@@ -2096,6 +2089,7 @@ end
             end;
             
             function cfg.set(bool)
+                cfg.enabled = bool
                 if cfg.type == "checkbox" then 
                     library:tween(items[ "tick" ], {Rotation = bool and 0 or 45, ImageTransparency = bool and 0 or 1})
                     library:tween(items[ "toggle_button" ], {BackgroundColor3 = bool and themes.preset.accent or themes.preset.container})
@@ -2109,20 +2103,18 @@ end
                 cfg.callback(bool)
 
                 if cfg.folding then 
-                    elements.Visible = bool
+                    items.elements.Visible = bool
                 end
 
                 flags[cfg.flag] = bool
             end 
             
-            items[ "toggle" ].MouseButton1Click:Connect(function()
-                cfg.enabled = not cfg.enabled 
-                cfg.set(cfg.enabled)
+            library:connection(items[ "toggle" ].MouseButton1Click, function()
+                cfg.set(not cfg.enabled)
             end)
 
-            items[ "toggle_button" ].MouseButton1Click:Connect(function()
-                cfg.enabled = not cfg.enabled 
-                cfg.set(cfg.enabled)
+            library:connection(items[ "toggle_button" ].MouseButton1Click, function()
+                cfg.set(not cfg.enabled)
             end)
             
             if cfg.seperator then 
@@ -2330,29 +2322,38 @@ end
 
             function cfg.set(value)
                 cfg.value = clamp(library:round(value, cfg.intervals), cfg.min, cfg.max)
-
-                library:tween(items[ "fill" ], {Size = dim2((cfg.value - cfg.min) / (cfg.max - cfg.min), cfg.value == cfg.min and 0 or -4, 0, 2)}, Enum.EasingStyle.Linear, 0.05)
+                
+                local range = cfg.max - cfg.min
+                if range == 0 then range = 1 end
+                
+                library:tween(items[ "fill" ], {Size = dim2((cfg.value - cfg.min) / range, cfg.value == cfg.min and 0 or -4, 0, 2)}, Enum.EasingStyle.Linear, 0.05)
                 items[ "value" ].Text = tostring(cfg.value) .. cfg.suffix
 
                 flags[cfg.flag] = cfg.value
                 cfg.callback(flags[cfg.flag])
             end
 
-            items[ "slider" ].MouseButton1Down:Connect(function()
-                cfg.dragging = true 
-                library:tween(items[ "value" ], {TextColor3 = rgb(255, 255, 255)}, Enum.EasingStyle.Quad, 0.2)
-            end)
-
-            -- Memory Leak Fix: Use library:connection for global UserInputService events
-            library:connection(uis.InputChanged, function(input)
-                if cfg.dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then 
-                    local size_x = (input.Position.X - items[ "slider" ].AbsolutePosition.X) / items[ "slider" ].AbsoluteSize.X
+            library:connection(items[ "slider" ].InputBegan, function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                    cfg.dragging = true 
+                    library:tween(items[ "value" ], {TextColor3 = rgb(255, 255, 255)}, Enum.EasingStyle.Quad, 0.2)
+                    
+                    local slider_width = math.max(1, items[ "slider" ].AbsoluteSize.X)
+                    local size_x = (input.Position.X - items[ "slider" ].AbsolutePosition.X) / slider_width
                     local value = ((cfg.max - cfg.min) * size_x) + cfg.min
                     cfg.set(value)
                 end
             end)
 
-            -- Slider Dragging State Fix: Check if cfg.dragging is true before executing cleanup
+            library:connection(uis.InputChanged, function(input)
+                if cfg.dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then 
+                    local slider_width = math.max(1, items[ "slider" ].AbsoluteSize.X)
+                    local size_x = (input.Position.X - items[ "slider" ].AbsolutePosition.X) / slider_width
+                    local value = ((cfg.max - cfg.min) * size_x) + cfg.min
+                    cfg.set(value)
+                end
+            end)
+
             library:connection(uis.InputEnded, function(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
                     if cfg.dragging then
@@ -2395,7 +2396,7 @@ end
                 multi_items = {};
                 ignore = options.ignore or false;
                 items = {};
-                y_size;
+                y_size = nil;
                 seperator = options.seperator or options.Seperator or true;
             }   
 
@@ -2540,7 +2541,6 @@ end
                 -- 
 
                 -- Element Holder
-                -- Dropdown Z-Index Fix: Apply higher ZIndex
                     items[ "dropdown_holder" ] = library:create( "Frame" , {
                         BorderColor3 = rgb(0, 0, 0);
                         Parent = library[ "items" ];
@@ -2625,7 +2625,7 @@ end
                 local selected = {}
                 local isTable = type(value) == "table"
 
-                for _, option in cfg.option_instances do 
+                for _, option in ipairs(cfg.option_instances) do 
                     if option.Text == value or (isTable and find(value, option.Text)) then 
                         insert(selected, option.Text)
                         cfg.multi_items = selected
@@ -2644,18 +2644,18 @@ end
             function cfg.refresh_options(list) 
                 cfg.y_size = 0
 
-                for _, option in cfg.option_instances do 
+                for _, option in ipairs(cfg.option_instances) do 
                     option:Destroy() 
                 end
                 
                 cfg.option_instances = {} 
 
-                for _, option in list do 
+                for _, option in ipairs(list) do 
                     local button = cfg.render_option(option)
                     cfg.y_size += button.AbsoluteSize.Y + 6
                     insert(cfg.option_instances, button)
                     
-                    button.MouseButton1Down:Connect(function()
+                    library:connection(button.MouseButton1Down, function()
                         if cfg.multi then 
                             local selected_index = find(cfg.multi_items, button.Text)
                             
@@ -2676,7 +2676,7 @@ end
                 end
             end
 
-            items[ "dropdown" ].MouseButton1Click:Connect(function()
+            library:connection(items[ "dropdown" ].MouseButton1Click, function()
                 cfg.open = not cfg.open 
                 
                 cfg.set_visible(cfg.open)
@@ -2882,7 +2882,6 @@ end
                 --
                 
                 -- Colorpicker
-                -- Dropdown Z-Index Fix: Apply higher ZIndex so colorpicker is on top
                     items[ "colorpicker_holder" ] = library:create( "Frame" , {
                         Parent = library[ "other" ];
                         Name = "\0";
@@ -3222,16 +3221,16 @@ end
                     Transparency = a 
                 }
                 
-                local color = items[ "colorpicker" ].BackgroundColor3
-                items[ "input" ].Text = string.format("%s, %s, %s, ", library:round(color.R * 255), library:round(color.G * 255), library:round(color.B * 255))
+                local r_color = items[ "colorpicker" ].BackgroundColor3
+                items[ "input" ].Text = string.format("%s, %s, %s, ", library:round(r_color.R * 255), library:round(r_color.G * 255), library:round(r_color.B * 255))
                 items[ "input" ].Text ..= library:round(1 - a, 0.01)
                 
                 cfg.callback(Color, a)
             end
             
             function cfg.update_color() 
-                local mouse = uis:GetMouseLocation() 
-                local offset = vec2(mouse.X, mouse.Y - gui_offset) 
+                local mouse_loc = uis:GetMouseLocation() 
+                local offset = vec2(mouse_loc.X, mouse_loc.Y - gui_offset) 
 
                 if dragging_sat then	
                     s = math.clamp((offset - items["sat"].AbsolutePosition).X / items["sat"].AbsoluteSize.X, 0, 1)
@@ -3245,13 +3244,12 @@ end
                 cfg.set()
             end
 
-            items[ "colorpicker" ].MouseButton1Click:Connect(function()
+            library:connection(items[ "colorpicker" ].MouseButton1Click, function()
                 cfg.open = not cfg.open 
 
                 cfg.set_visible(cfg.open)            
             end)
 
-            -- Memory Leak Fix: Use library:connection for global UserInputService events
             library:connection(uis.InputChanged, function(input)
                 if (dragging_sat or dragging_hue or dragging_alpha) and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
                     cfg.update_color() 
@@ -3266,39 +3264,47 @@ end
                 end
             end)    
 
-            -- Colorpicker Dragging Conflicts Fix: Enforce exclusivity of drag states
-            items[ "alpha_gradient" ].MouseButton1Down:Connect(function()
-                dragging_alpha = true 
-                dragging_hue = false
-                dragging_sat = false
+            library:connection(items[ "alpha_gradient" ].InputBegan, function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                    dragging_alpha = true 
+                    dragging_hue = false
+                    dragging_sat = false
+                    cfg.update_color()
+                end
             end)
             
-            items[ "hue_gradient" ].MouseButton1Down:Connect(function()
-                dragging_hue = true 
-                dragging_alpha = false
-                dragging_sat = false
+            library:connection(items[ "hue_gradient" ].InputBegan, function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                    dragging_hue = true 
+                    dragging_alpha = false
+                    dragging_sat = false
+                    cfg.update_color()
+                end
             end)
             
-            items[ "sat" ].MouseButton1Down:Connect(function()
-                dragging_sat = true  
-                dragging_hue = false
-                dragging_alpha = false
+            library:connection(items[ "sat" ].InputBegan, function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                    dragging_sat = true  
+                    dragging_hue = false
+                    dragging_alpha = false
+                    cfg.update_color()
+                end
             end)
 
-            items[ "input" ].FocusLost:Connect(function()
+            library:connection(items[ "input" ].FocusLost, function()
                 local text = items[ "input" ].Text
-                local r, g, b, a = library:convert(text)
+                local r, g, b, alpha_val = library:convert(text)
                 
-                if r and g and b and a then 
-                    cfg.set(rgb(r, g, b), 1 - a)
+                if r and g and b and alpha_val then 
+                    cfg.set(rgb(r, g, b), 1 - alpha_val)
                 end 
             end)
 
-            items[ "input" ].Focused:Connect(function()
+            library:connection(items[ "input" ].Focused, function()
                 library:tween(items[ "input" ], {TextColor3 = themes.preset.text})
             end)
 
-            items[ "input" ].FocusLost:Connect(function()
+            library:connection(items[ "input" ].FocusLost, function()
                 library:tween(items[ "input" ], {TextColor3 = rgb(72, 72, 72)})
             end)
             
@@ -3414,15 +3420,15 @@ end
                 cfg.callback(text)
             end 
             
-            items[ "input" ]:GetPropertyChangedSignal("Text"):Connect(function()
+            library:connection(items[ "input" ]:GetPropertyChangedSignal("Text"), function()
                 cfg.set(items[ "input" ].Text) 
             end)
 
-            items[ "input" ].Focused:Connect(function()
+            library:connection(items[ "input" ].Focused, function()
                 library:tween(items[ "input" ], {TextColor3 = themes.preset.text})
             end)
 
-            items[ "input" ].FocusLost:Connect(function()
+            library:connection(items[ "input" ].FocusLost, function()
                 library:tween(items[ "input" ], {TextColor3 = rgb(72, 72, 72)})
             end)
                 
@@ -3606,7 +3612,7 @@ end
                     local options = {"Hold", "Toggle", "Always"}
                     
                     cfg.y_size = 20
-                    for _, option in options do                        
+                    for _, option in ipairs(options) do                        
                         local name = library:create( "TextButton" , {
                             FontFace = fonts.font;
                             TextColor3 = themes.preset.text_dim;
@@ -3633,7 +3639,7 @@ end
                             PaddingLeft = dim(0, 5)
                         });
 
-                        name.MouseButton1Click:Connect(function()
+                        library:connection(name.MouseButton1Click, function()
                             cfg.set(option)
                             cfg.set_visible(false)
                             cfg.open = false
@@ -3643,7 +3649,7 @@ end
             end 
             
             function cfg.modify_mode_color(path) 
-                for _, v in cfg.hold_instances do 
+                for _, v in pairs(cfg.hold_instances) do 
                     v.TextColor3 = rgb(72, 72, 72)
                 end 
                 cfg.hold_instances[path].TextColor3 = themes.preset.accent
@@ -3704,11 +3710,10 @@ end
                 items[ "dropdown" ].Position = dim_offset(items[ "keybind_holder" ].AbsolutePosition.X, items[ "keybind_holder" ].AbsolutePosition.Y + items[ "keybind_holder" ].AbsoluteSize.Y + 60)
             end
         
-            items[ "keybind_holder" ].MouseButton1Down:Connect(function()
+            library:connection(items[ "keybind_holder" ].MouseButton1Down, function()
                 task.wait()
                 items[ "key" ].Text = "..."	
                 
-                -- Memory Leak Fix: Use library:connection for global UserInputService events
                 cfg.binding = library:connection(uis.InputBegan, function(keycode, game_event)  
                     cfg.set(keycode.KeyCode ~= Enum.KeyCode.Unknown and keycode.KeyCode or keycode.UserInputType)
                     cfg.binding:Disconnect() 
@@ -3716,12 +3721,11 @@ end
                 end)
             end)
 
-            items[ "keybind_holder" ].MouseButton2Down:Connect(function()
+            library:connection(items[ "keybind_holder" ].MouseButton2Down, function()
                 cfg.open = not cfg.open 
                 cfg.set_visible(cfg.open)
             end)
 
-            -- Memory Leak Fix: Use library:connection for global UserInputService events
             library:connection(uis.InputBegan, function(input, game_event) 
                 if not game_event then
                     local selected_key = input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode or input.UserInputType
@@ -3736,7 +3740,6 @@ end
                 end
             end)    
 
-            -- Memory Leak Fix: Use library:connection for global UserInputService events
             library:connection(uis.InputEnded, function(input, game_event) 
                 if game_event then return end 
                 local selected_key = input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode or input.UserInputType
@@ -3809,7 +3812,7 @@ end
                 }); library:apply_theme(items[ "name" ], "text", "TextColor3");                            
             end 
 
-            items[ "button" ].MouseButton1Click:Connect(function()
+            library:connection(items[ "button" ].MouseButton1Click, function()
                 cfg.callback()
                 items[ "name" ].TextColor3 = themes.preset.accent 
                 library:tween(items[ "name" ], {TextColor3 = themes.preset.text})
@@ -3899,7 +3902,7 @@ end
                 library:close_element(cfg)
             end
             
-            items[ "tick" ].MouseButton1Click:Connect(function()
+            library:connection(items[ "tick" ].MouseButton1Click, function()
                 cfg.open = not cfg.open
                 cfg.set_visible(cfg.open)
             end)
@@ -3943,12 +3946,12 @@ end
             end 
 
             function cfg.refresh_options(options_to_refresh) 
-                for _,option in cfg.data_store do 
+                for _,option in pairs(cfg.data_store) do 
                     option:Destroy()
                 end
                 cfg.data_store = {}
 
-                for _, option_data in options_to_refresh do 
+                for _, option_data in ipairs(options_to_refresh) do 
                     local button = library:create( "TextButton" , {
                         FontFace = fonts.small;
                         TextColor3 = rgb(0, 0, 0);
@@ -3986,7 +3989,7 @@ end
                         CornerRadius = dim(0, 3)
                     });     
 
-                    button.MouseButton1Click:Connect(function()
+                    library:connection(button.MouseButton1Click, function()
                         local current = cfg.current_element 
                         if current and current ~= name then 
                             library:tween(current, {TextColor3 = rgb(72, 72, 72)})
@@ -3997,12 +4000,12 @@ end
                         cfg.current_element = name
                     end)
 
-                    name.MouseEnter:Connect(function()
+                    library:connection(name.MouseEnter, function()
                         if cfg.current_element == name then return end 
                         library:tween(name, {TextColor3 = rgb(140, 140, 140)})
                     end)
 
-                    name.MouseLeave:Connect(function()
+                    library:connection(name.MouseLeave, function()
                         if cfg.current_element == name then return end 
                         library:tween(name, {TextColor3 = rgb(72, 72, 72)})
                     end)
@@ -4027,7 +4030,8 @@ end
             section:textbox({name = "Config name:", flag = "config_name_text"})
             
             section:button({name = "Save", callback = function() 
-                local name = flags["config_name_text"] or flags["config_name_list"]
+                local name = flags["config_name_text"]
+                if not name or name == "" then name = flags["config_name_list"] end
                 if not name or name == "" then return end
                 writefile(library.directory .. "/configs/" .. name .. ".cfg", library:get_config()) 
                 library:update_config_list() 
@@ -4066,7 +4070,7 @@ end
     -- Notification Library
         function notifications:refresh_notifs() 
             local offset = 50
-            for i, v in notifications.notifs do
+            for i, v in pairs(notifications.notifs) do
                 local Position = vec2(20, offset)
                 library:tween(v, {Position = dim_offset(Position.X, Position.Y)}, Enum.EasingStyle.Quad, 0.4)
                 offset += (v.AbsoluteSize.Y + 10)
@@ -4078,7 +4082,7 @@ end
             local fading = is_fading and 1 or 0 
             library:tween(path, {BackgroundTransparency = fading}, Enum.EasingStyle.Quad, 1)
 
-            for _, instance in path:GetDescendants() do 
+            for _, instance in pairs(path:GetDescendants()) do 
                 if not instance:IsA("GuiObject") then 
                     if instance:IsA("UIStroke") then
                         library:tween(instance, {Transparency = fading}, Enum.EasingStyle.Quad, 1)
