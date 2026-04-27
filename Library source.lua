@@ -1,5 +1,4 @@
 
-
 --[[
     Meno Library (Remastered: Premium Theme & Animation)
     - Re-themed to "Nightfall"
@@ -146,18 +145,19 @@ end
     local keys = {
         [Enum.KeyCode.LeftShift] = "LS",[Enum.KeyCode.RightShift] = "RS",
         [Enum.KeyCode.LeftControl] = "LC",[Enum.KeyCode.RightControl] = "RC",
-        [Enum.KeyCode.Insert] = "INS",[Enum.KeyCode.Backspace] = "BS",
-        [Enum.KeyCode.Return] = "Ent",[Enum.KeyCode.LeftAlt] = "LA",
-        [Enum.KeyCode.RightAlt] = "RA",[Enum.KeyCode.CapsLock] = "CAPS",
+        [Enum.KeyCode.Insert] = "INS", [Enum.KeyCode.Backspace] = "BS",
+        [Enum.KeyCode.Return] = "Ent", [Enum.KeyCode.LeftAlt] = "LA",
+        [Enum.KeyCode.RightAlt] = "RA", [Enum.KeyCode.CapsLock] = "CAPS",
         [Enum.KeyCode.One] = "1", [Enum.KeyCode.Two] = "2", [Enum.KeyCode.Three] = "3",
-        [Enum.KeyCode.Four] = "4", [Enum.KeyCode.Five] = "5",[Enum.KeyCode.Six] = "6",
+        [Enum.KeyCode.Four] = "4", [Enum.KeyCode.Five] = "5", [Enum.KeyCode.Six] = "6",
         [Enum.KeyCode.Seven] = "7",[Enum.KeyCode.Eight] = "8", [Enum.KeyCode.Nine] = "9",[Enum.KeyCode.Zero] = "0", [Enum.KeyCode.KeypadOne] = "Num1",[Enum.KeyCode.KeypadTwo] = "Num2",
-        [Enum.KeyCode.KeypadThree] = "Num3", [Enum.KeyCode.KeypadFour] = "Num4",[Enum.KeyCode.KeypadFive] = "Num5",
-        [Enum.KeyCode.KeypadSix] = "Num6", [Enum.KeyCode.KeypadSeven] = "Num7", [Enum.KeyCode.KeypadEight] = "Num8",
-        [Enum.KeyCode.KeypadNine] = "Num9",[Enum.KeyCode.KeypadZero] = "Num0", [Enum.KeyCode.Minus] = "-",[Enum.KeyCode.Equals] = "=", [Enum.KeyCode.Tilde] = "~",[Enum.KeyCode.LeftBracket] = "[",
-        [Enum.KeyCode.RightBracket] = "]",[Enum.KeyCode.RightParenthesis] = ")", [Enum.KeyCode.LeftParenthesis] = "(",[Enum.KeyCode.Semicolon] = ",", [Enum.KeyCode.Quote] = "'",[Enum.KeyCode.BackSlash] = "\\",
-        [Enum.KeyCode.Comma] = ",", [Enum.KeyCode.Period] = ".", [Enum.KeyCode.Slash] = "/",
-        [Enum.KeyCode.Asterisk] = "*",[Enum.KeyCode.Plus] = "+", [Enum.KeyCode.Period] = ".",[Enum.KeyCode.Backquote] = "`", [Enum.UserInputType.MouseButton1] = "MB1",[Enum.UserInputType.MouseButton2] = "MB2", [Enum.UserInputType.MouseButton3] = "MB3",
+        [Enum.KeyCode.KeypadThree] = "Num3", [Enum.KeyCode.KeypadFour] = "Num4", [Enum.KeyCode.KeypadFive] = "Num5",
+        [Enum.KeyCode.KeypadSix] = "Num6",[Enum.KeyCode.KeypadSeven] = "Num7", [Enum.KeyCode.KeypadEight] = "Num8",
+        [Enum.KeyCode.KeypadNine] = "Num9",[Enum.KeyCode.KeypadZero] = "Num0", [Enum.KeyCode.Minus] = "-",[Enum.KeyCode.Equals] = "=", [Enum.KeyCode.Tilde] = "~", [Enum.KeyCode.LeftBracket] = "[",
+        [Enum.KeyCode.RightBracket] = "]", [Enum.KeyCode.RightParenthesis] = ")", [Enum.KeyCode.LeftParenthesis] = "(",[Enum.KeyCode.Semicolon] = ",", [Enum.KeyCode.Quote] = "'", [Enum.KeyCode.BackSlash] = "\\",
+        [Enum.KeyCode.Comma] = ",", [Enum.KeyCode.Period] = ".",[Enum.KeyCode.Slash] = "/",
+        [Enum.KeyCode.Asterisk] = "*",[Enum.KeyCode.Plus] = "+", [Enum.KeyCode.Period] = ".",
+        [Enum.KeyCode.Backquote] = "`", [Enum.UserInputType.MouseButton1] = "MB1",[Enum.UserInputType.MouseButton2] = "MB2", [Enum.UserInputType.MouseButton3] = "MB3",
         [Enum.KeyCode.Escape] = "ESC", [Enum.KeyCode.Space] = "SPC",
     }
         
@@ -218,12 +218,6 @@ end
 
 -- Library functions 
     -- Misc functions
-        function library:connection(signal, callback)
-            local connection = signal:Connect(callback)
-            insert(library.connections, connection)
-            return connection 
-        end
-
         function library:tween(obj, properties, easing_style, time) 
             local tween = tween_service:Create(obj, TweenInfo.new(time or 0.25, easing_style or Enum.EasingStyle.Quint, Enum.EasingDirection.InOut, 0, false, 0), properties):Play()
             return tween
@@ -245,7 +239,7 @@ end
             local start 
             local og_size = frame.Size  
 
-            library:connection(Frame.InputBegan, function(input)
+            Frame.InputBegan:Connect(function(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
                     resizing = true
                     start = input.Position
@@ -253,12 +247,13 @@ end
                 end
             end)
 
-            library:connection(Frame.InputEnded, function(input)
+            Frame.InputEnded:Connect(function(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
                     resizing = false
                 end
             end)
 
+            -- Memory Leak Fix: Use library:connection for global UserInputService events
             library:connection(uis.InputChanged, function(input, game_event) 
                 if resizing and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
                     local viewport_x = camera.ViewportSize.X
@@ -309,7 +304,7 @@ end
             local start_size = frame.Position
             local start 
 
-            library:connection(frame.InputBegan, function(input)
+            frame.InputBegan:Connect(function(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
                     dragging = true
                     start = input.Position
@@ -317,12 +312,13 @@ end
                 end
             end)
 
-            library:connection(frame.InputEnded, function(input)
+            frame.InputEnded:Connect(function(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
                     dragging = false
                 end
             end)
 
+            -- Memory Leak Fix: Use library:connection for global UserInputService events
             library:connection(uis.InputChanged, function(input, game_event) 
                 if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
                     local viewport_x = camera.ViewportSize.X
@@ -427,11 +423,12 @@ end
             end
         end
 
+        -- Theme Application Race Condition Fix: Clean up destroyed UI elements from the theme registry
         function library:update_theme(theme_name, color_val)
             if themes.utility[theme_name] then
                 for property, objects in themes.utility[theme_name] do
                     local valid_objects = {}
-                    for _, object in objects do
+                    for _, object in ipairs(objects) do
                         if object and object.Parent then
                             object[property] = color_val
                             insert(valid_objects, object)
@@ -450,6 +447,12 @@ end
             library:update_theme("border", theme_data.border)
             library:update_theme("text", theme_data.text)
             library:update_theme("text_dim", theme_data.text_dim)
+        end
+
+        function library:connection(signal, callback)
+            local connection = signal:Connect(callback)
+            insert(library.connections, connection)
+            return connection 
         end
 
         function library:close_element(new_path) 
@@ -483,6 +486,7 @@ end
 
             for index, connection in library.connections do 
                 connection:Disconnect() 
+                connection = nil 
             end
             table.clear(library.connections)
             
@@ -633,7 +637,7 @@ end
              end
         end
 
-        library:connection(check_btn.MouseButton1Click, function()
+        check_btn.MouseButton1Click:Connect(function()
             if find(settings.Key, input_box.Text) then
                 if settings.SaveKey then
                     writefile(key_file, input_box.Text)
@@ -664,7 +668,7 @@ end
             end
         end)
         
-        library:connection(link_btn.MouseButton1Click, function()
+        link_btn.MouseButton1Click:Connect(function()
             if settings.SecondAction.Type == "Link" then
                 setclipboard(settings.SecondAction.Parameter)
                 link_btn.Text = "Copied to Clipboard!"
@@ -773,10 +777,10 @@ end
                     Name = "CloseButton"
                 }); library:apply_theme(close_button, "text_dim", "TextColor3")
 
-                library:connection(close_button.MouseEnter, function()
+                close_button.MouseEnter:Connect(function()
                     library:tween(close_button, {TextColor3 = rgb(255, 50, 50)})
                 end)
-                library:connection(close_button.MouseLeave, function()
+                close_button.MouseLeave:Connect(function()
                     library:tween(close_button, {TextColor3 = themes.preset.text_dim})
                 end)
 
@@ -853,23 +857,30 @@ end
                 end)
 
                 -- CLICK TO OPEN LOGIC
-                library:connection(mini_frame.MouseButton1Click, function()
+                -- Toggle/Element Visibility Fix: Replaced generic Transparency tween
+                mini_frame.MouseButton1Click:Connect(function()
                     library["open_gui"].Enabled = false
                     library["items"].Enabled = true
                     
                     items["main"].Size = dim2(0, 0, 0, 0)
                     items["main"].Position = dim2(0.5, 0, 0.5, 0)
                     items["main"].BackgroundTransparency = 0
+                    items["main"].ClipsDescendants = true
+                    
+                    -- Keep shadow invisible while opening
+                    if items["shadow"] then items["shadow"].ImageTransparency = 1 end
 
                     for _, v in pairs(items["main"]:GetDescendants()) do
-                        if (v:IsA("GuiObject") or v:IsA("UIStroke")) and v.Name ~= "Shadow" then 
-                            local goal = {}
-                            if v:GetAttribute("OrigBg") ~= nil then goal.BackgroundTransparency = v:GetAttribute("OrigBg") end
-                            if (v:IsA("TextLabel") or v:IsA("TextButton") or v:IsA("TextBox")) and v:GetAttribute("OrigText") ~= nil then goal.TextTransparency = v:GetAttribute("OrigText") end
-                            if (v:IsA("ImageLabel") or v:IsA("ImageButton")) and v:GetAttribute("OrigImg") ~= nil then goal.ImageTransparency = v:GetAttribute("OrigImg") end
-                            if v:IsA("UIStroke") and v:GetAttribute("OrigStroke") ~= nil then goal.Transparency = v:GetAttribute("OrigStroke") end
-                            
-                            library:tween(v, goal, Enum.EasingStyle.Quad, 0.1)
+                        if v:IsA("GuiObject") and v.Name ~= "Shadow" then 
+                             if v:IsA("TextLabel") or v:IsA("TextButton") or v:IsA("TextBox") then
+                                 library:tween(v, {TextTransparency = 0}, Enum.EasingStyle.Quad, 0.1)
+                             end
+                             if v:IsA("ImageLabel") or v:IsA("ImageButton") then
+                                 library:tween(v, {ImageTransparency = 0}, Enum.EasingStyle.Quad, 0.1)
+                             end
+                             if v:IsA("UIStroke") then
+                                 library:tween(v, {Transparency = 0}, Enum.EasingStyle.Quad, 0.1)
+                             end
                         end
                     end
 
@@ -878,30 +889,40 @@ end
                         Position = original_pos, 
                         BackgroundTransparency = 0
                     }, Enum.EasingStyle.Elastic, 0.8)
+
+                    if items["shadow"] then
+                        library:tween(items["shadow"], {ImageTransparency = 0}, Enum.EasingStyle.Quad, 0.8)
+                    end
+                    
+                    task.delay(0.8, function()
+                        if items["main"] then items["main"].ClipsDescendants = false end
+                    end)
                 end)
 
-                library:connection(close_button.MouseButton1Click, function()
+                -- Toggle/Element Visibility Fix: Replaced generic Transparency tween
+                close_button.MouseButton1Click:Connect(function()
+                    items["main"].ClipsDescendants = true
                     library:tween(items["main"], {
                         Size = dim2(0, 0, 0, 0),
                         Position = dim2(0.5, 0, 0.5, 0),
                         BackgroundTransparency = 1
                     }, Enum.EasingStyle.Back, 0.4)
                     
-                    for _, v in pairs(items["main"]:GetDescendants()) do
-                        if (v:IsA("GuiObject") or v:IsA("UIStroke")) and v.Name ~= "Shadow" then
-                            -- Save Original States before hiding
-                            if v:GetAttribute("OrigBg") == nil then v:SetAttribute("OrigBg", v.BackgroundTransparency) end
-                            if (v:IsA("TextLabel") or v:IsA("TextButton") or v:IsA("TextBox")) and v:GetAttribute("OrigText") == nil then v:SetAttribute("OrigText", v.TextTransparency) end
-                            if (v:IsA("ImageLabel") or v:IsA("ImageButton")) and v:GetAttribute("OrigImg") == nil then v:SetAttribute("OrigImg", v.ImageTransparency) end
-                            if v:IsA("UIStroke") and v:GetAttribute("OrigStroke") == nil then v:SetAttribute("OrigStroke", v.Transparency) end
+                    if items["shadow"] then
+                        library:tween(items["shadow"], {ImageTransparency = 1}, Enum.EasingStyle.Quad, 0.2)
+                    end
 
-                            -- Apply hidden state
-                            local goal = {BackgroundTransparency = 1}
-                            if v:IsA("TextLabel") or v:IsA("TextButton") or v:IsA("TextBox") then goal.TextTransparency = 1 end
-                            if v:IsA("ImageLabel") or v:IsA("ImageButton") then goal.ImageTransparency = 1 end
-                            if v:IsA("UIStroke") then goal.Transparency = 1 end
-                            
-                            library:tween(v, goal, Enum.EasingStyle.Quad, 0.2)
+                    for _, v in pairs(items["main"]:GetDescendants()) do
+                        if v:IsA("GuiObject") and v.Name ~= "Shadow" then
+                            if v:IsA("TextLabel") or v:IsA("TextButton") or v:IsA("TextBox") then
+                                library:tween(v, {TextTransparency = 1}, Enum.EasingStyle.Quad, 0.2)
+                            end
+                            if v:IsA("ImageLabel") or v:IsA("ImageButton") then
+                                library:tween(v, {ImageTransparency = 1}, Enum.EasingStyle.Quad, 0.2)
+                            end
+                            if v:IsA("UIStroke") then
+                                library:tween(v, {Transparency = 1}, Enum.EasingStyle.Quad, 0.2)
+                            end
                         end
                     end
 
@@ -911,7 +932,7 @@ end
                 end)
 
                 -- Update original_pos when dragging ends
-                library:connection(items["main"].InputEnded, function(input)
+                items["main"].InputEnded:Connect(function(input)
                     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
                         original_pos = items["main"].Position
                     end
@@ -977,6 +998,7 @@ end
                 items[ "title" ] = library:create( "TextLabel" , {
                     FontFace = fonts.font;
                     BorderColor3 = rgb(0, 0, 0);
+                    Text = name;
                     Parent = title_btn;
                     Name = "\0";
                     Text = string.format('<u>%s</u><font color = "rgb(255, 255, 255)">%s</font>', cfg.name, cfg.suffix);
@@ -990,7 +1012,7 @@ end
                     BackgroundColor3 = rgb(255, 255, 255)
                 }); library:apply_theme(items[ "title" ], "accent", "TextColor3");
                 
-                library:connection(title_btn.MouseButton1Click, function()
+                title_btn.MouseButton1Click:Connect(function()
                     current_theme_idx = current_theme_idx + 1
                     if current_theme_idx > #theme_list then current_theme_idx = 1 end
                     local th = theme_list[current_theme_idx]
@@ -1117,45 +1139,56 @@ end
                 }); library:apply_theme(items[ "other_info" ], "accent", "TextColor3"); 
 
                 -- 3. LOADING ANIMATION
+                -- Toggle/Element Visibility Fix: Replaced generic Transparency tween
                 task.spawn(function()
                     if items["main"] then
                         items["main"].Size = dim2(0, 0, 0, 0)
                         items["main"].BackgroundTransparency = 1
+                        items["main"].ClipsDescendants = true
                         
                         -- Hide contents temporarily
                         for _, v in pairs(items["main"]:GetDescendants()) do
-                            if (v:IsA("GuiObject") or v:IsA("UIStroke")) and v.Name ~= "Shadow" then
-                                -- Save Original States
-                                if v:GetAttribute("OrigBg") == nil then v:SetAttribute("OrigBg", v.BackgroundTransparency) end
-                                if (v:IsA("TextLabel") or v:IsA("TextButton") or v:IsA("TextBox")) and v:GetAttribute("OrigText") == nil then v:SetAttribute("OrigText", v.TextTransparency) end
-                                if (v:IsA("ImageLabel") or v:IsA("ImageButton")) and v:GetAttribute("OrigImg") == nil then v:SetAttribute("OrigImg", v.ImageTransparency) end
-                                if v:IsA("UIStroke") and v:GetAttribute("OrigStroke") == nil then v:SetAttribute("OrigStroke", v.Transparency) end
-
-                                -- Apply hidden state
-                                v.BackgroundTransparency = 1
-                                if v:IsA("TextLabel") or v:IsA("TextButton") or v:IsA("TextBox") then v.TextTransparency = 1 end
-                                if v:IsA("ImageLabel") or v:IsA("ImageButton") then v.ImageTransparency = 1 end
-                                if v:IsA("UIStroke") then v.Transparency = 1 end
+                            if v:IsA("GuiObject") and v.Name ~= "Shadow" then
+                                if v:IsA("TextLabel") or v:IsA("TextButton") or v:IsA("TextBox") then
+                                    v.TextTransparency = 1
+                                end
+                                if v:IsA("ImageLabel") or v:IsA("ImageButton") then
+                                    v.ImageTransparency = 1
+                                end
+                                if v:IsA("UIStroke") then
+                                    v.Transparency = 1
+                                end
                             end
                         end
                         
+                        if items["shadow"] then items["shadow"].ImageTransparency = 1 end
                         task.wait(0.1)
                         
                         -- Pop up animation
                         library:tween(items["main"], {Size = original_size, BackgroundTransparency = 0}, Enum.EasingStyle.Back, 0.6)
                         
-                        -- Fade in contents intelligently
+                        if items["shadow"] then
+                            library:tween(items["shadow"], {ImageTransparency = 0}, Enum.EasingStyle.Quad, 0.6)
+                        end
+
+                        -- Fade in contents
                         for _, v in pairs(items["main"]:GetDescendants()) do
-                            if (v:IsA("GuiObject") or v:IsA("UIStroke")) and v.Name ~= "Shadow" then
-                                local goal = {}
-                                if v:GetAttribute("OrigBg") ~= nil then goal.BackgroundTransparency = v:GetAttribute("OrigBg") end
-                                if (v:IsA("TextLabel") or v:IsA("TextButton") or v:IsA("TextBox")) and v:GetAttribute("OrigText") ~= nil then goal.TextTransparency = v:GetAttribute("OrigText") end
-                                if (v:IsA("ImageLabel") or v:IsA("ImageButton")) and v:GetAttribute("OrigImg") ~= nil then goal.ImageTransparency = v:GetAttribute("OrigImg") end
-                                if v:IsA("UIStroke") and v:GetAttribute("OrigStroke") ~= nil then goal.Transparency = v:GetAttribute("OrigStroke") end
-                                
-                                library:tween(v, goal, Enum.EasingStyle.Quad, 0.4)
+                            if v:IsA("GuiObject") and v.Name ~= "Shadow" then
+                                if v:IsA("TextLabel") or v:IsA("TextButton") or v:IsA("TextBox") then
+                                    library:tween(v, {TextTransparency = 0}, Enum.EasingStyle.Quad, 0.4)
+                                end
+                                if v:IsA("ImageLabel") or v:IsA("ImageButton") then
+                                    library:tween(v, {ImageTransparency = 0}, Enum.EasingStyle.Quad, 0.4)
+                                end
+                                if v:IsA("UIStroke") then
+                                    library:tween(v, {Transparency = 0}, Enum.EasingStyle.Quad, 0.4)
+                                end
                             end
                         end
+                        
+                        task.delay(0.6, function()
+                            if items["main"] then items["main"].ClipsDescendants = false end
+                        end)
                     end
                 end)
             end 
@@ -1192,7 +1225,7 @@ end
                 icon = properties.icon or properties.Icon or "http://www.roblox.com/asset/?id=6034767608";
                 tabs = properties.tabs or properties.Tabs or {"Main", "Misc.", "Settings"};
                 pages = {}; 
-                current_multi = nil; 
+                current_multi; 
                 items = {};
             } 
 
@@ -1445,7 +1478,7 @@ end
                             library:close_element()
 						end
 
-						library:connection(multi_items[ "button" ].MouseButton1Down, function()
+						multi_items[ "button" ].MouseButton1Down:Connect(function()
 							data.open_page() 
 						end)
 
@@ -1498,12 +1531,12 @@ end
                 library:close_element()
             end
 
-            library:connection(items[ "button" ].MouseButton1Down, function()
+            items[ "button" ].MouseButton1Down:Connect(function()
                 cfg.open_tab()
             end)
             
             if not self.selected_tab then 
-                cfg.open_tab() 
+                cfg.open_tab(true) 
             end
 
             return unpack(cfg.pages)
@@ -1830,7 +1863,7 @@ end
             end;
 
             if cfg.fading_toggle then
-                library:connection(items[ "button" ].MouseButton1Click, function()
+                items[ "button" ].MouseButton1Click:Connect(function()
                     cfg.default = not cfg.default 
                     cfg.toggle_section(cfg.default) 
                 end)
@@ -2076,18 +2109,18 @@ end
                 cfg.callback(bool)
 
                 if cfg.folding then 
-                    items.elements.Visible = bool
+                    elements.Visible = bool
                 end
 
                 flags[cfg.flag] = bool
             end 
             
-            library:connection(items[ "toggle" ].MouseButton1Click, function()
+            items[ "toggle" ].MouseButton1Click:Connect(function()
                 cfg.enabled = not cfg.enabled 
                 cfg.set(cfg.enabled)
             end)
 
-            library:connection(items[ "toggle_button" ].MouseButton1Click, function()
+            items[ "toggle_button" ].MouseButton1Click:Connect(function()
                 cfg.enabled = not cfg.enabled 
                 cfg.set(cfg.enabled)
             end)
@@ -2305,11 +2338,12 @@ end
                 cfg.callback(flags[cfg.flag])
             end
 
-            library:connection(items[ "slider" ].MouseButton1Down, function()
+            items[ "slider" ].MouseButton1Down:Connect(function()
                 cfg.dragging = true 
                 library:tween(items[ "value" ], {TextColor3 = rgb(255, 255, 255)}, Enum.EasingStyle.Quad, 0.2)
             end)
 
+            -- Memory Leak Fix: Use library:connection for global UserInputService events
             library:connection(uis.InputChanged, function(input)
                 if cfg.dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then 
                     local size_x = (input.Position.X - items[ "slider" ].AbsolutePosition.X) / items[ "slider" ].AbsoluteSize.X
@@ -2318,6 +2352,7 @@ end
                 end
             end)
 
+            -- Slider Dragging State Fix: Check if cfg.dragging is true before executing cleanup
             library:connection(uis.InputEnded, function(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
                     if cfg.dragging then
@@ -2360,7 +2395,7 @@ end
                 multi_items = {};
                 ignore = options.ignore or false;
                 items = {};
-                y_size = nil;
+                y_size;
                 seperator = options.seperator or options.Seperator or true;
             }   
 
@@ -2505,6 +2540,7 @@ end
                 -- 
 
                 -- Element Holder
+                -- Dropdown Z-Index Fix: Apply higher ZIndex
                     items[ "dropdown_holder" ] = library:create( "Frame" , {
                         BorderColor3 = rgb(0, 0, 0);
                         Parent = library[ "items" ];
@@ -2619,7 +2655,7 @@ end
                     cfg.y_size += button.AbsoluteSize.Y + 6
                     insert(cfg.option_instances, button)
                     
-                    library:connection(button.MouseButton1Down, function()
+                    button.MouseButton1Down:Connect(function()
                         if cfg.multi then 
                             local selected_index = find(cfg.multi_items, button.Text)
                             
@@ -2640,7 +2676,7 @@ end
                 end
             end
 
-            library:connection(items[ "dropdown" ].MouseButton1Click, function()
+            items[ "dropdown" ].MouseButton1Click:Connect(function()
                 cfg.open = not cfg.open 
                 
                 cfg.set_visible(cfg.open)
@@ -2846,6 +2882,7 @@ end
                 --
                 
                 -- Colorpicker
+                -- Dropdown Z-Index Fix: Apply higher ZIndex so colorpicker is on top
                     items[ "colorpicker_holder" ] = library:create( "Frame" , {
                         Parent = library[ "other" ];
                         Name = "\0";
@@ -2854,7 +2891,8 @@ end
                         Size = dim2(0, 166, 0, 197);
                         BorderSizePixel = 0;
                         Visible = false;
-                        BackgroundColor3 = themes.preset.container
+                        BackgroundColor3 = themes.preset.container;
+                        ZIndex = 1000;
                     }); library:apply_theme(items["colorpicker_holder"], "container", "BackgroundColor3")
 
                     items[ "colorpicker_fade" ] = library:create( "Frame" , {
@@ -2865,7 +2903,7 @@ end
                         BorderColor3 = rgb(0, 0, 0);
                         Size = dim2(1, 0, 1, 0);
                         BorderSizePixel = 0;
-                        ZIndex = 100;
+                        ZIndex = 1000;
                         BackgroundColor3 = themes.preset.container
                     }); library:apply_theme(items["colorpicker_fade"], "container", "BackgroundColor3")
                     
@@ -2876,7 +2914,8 @@ end
                         BorderColor3 = rgb(0, 0, 0);
                         Size = dim2(1, -2, 1, -2);
                         BorderSizePixel = 0;
-                        BackgroundColor3 = themes.preset.background
+                        BackgroundColor3 = themes.preset.background;
+                        ZIndex = 1001;
                     }); library:apply_theme(items["colorpicker_components"], "background", "BackgroundColor3")
                     
                     library:create( "UICorner" , {
@@ -3206,12 +3245,13 @@ end
                 cfg.set()
             end
 
-            library:connection(items[ "colorpicker" ].MouseButton1Click, function()
+            items[ "colorpicker" ].MouseButton1Click:Connect(function()
                 cfg.open = not cfg.open 
 
                 cfg.set_visible(cfg.open)            
             end)
 
+            -- Memory Leak Fix: Use library:connection for global UserInputService events
             library:connection(uis.InputChanged, function(input)
                 if (dragging_sat or dragging_hue or dragging_alpha) and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
                     cfg.update_color() 
@@ -3226,25 +3266,26 @@ end
                 end
             end)    
 
-            library:connection(items[ "alpha_gradient" ].MouseButton1Down, function()
-                dragging_alpha = true
+            -- Colorpicker Dragging Conflicts Fix: Enforce exclusivity of drag states
+            items[ "alpha_gradient" ].MouseButton1Down:Connect(function()
+                dragging_alpha = true 
                 dragging_hue = false
                 dragging_sat = false
             end)
             
-            library:connection(items[ "hue_gradient" ].MouseButton1Down, function()
-                dragging_hue = true
+            items[ "hue_gradient" ].MouseButton1Down:Connect(function()
+                dragging_hue = true 
                 dragging_alpha = false
                 dragging_sat = false
             end)
             
-            library:connection(items[ "sat" ].MouseButton1Down, function()
-                dragging_sat = true
+            items[ "sat" ].MouseButton1Down:Connect(function()
+                dragging_sat = true  
                 dragging_hue = false
                 dragging_alpha = false
             end)
 
-            library:connection(items[ "input" ].FocusLost, function()
+            items[ "input" ].FocusLost:Connect(function()
                 local text = items[ "input" ].Text
                 local r, g, b, a = library:convert(text)
                 
@@ -3253,11 +3294,11 @@ end
                 end 
             end)
 
-            library:connection(items[ "input" ].Focused, function()
+            items[ "input" ].Focused:Connect(function()
                 library:tween(items[ "input" ], {TextColor3 = themes.preset.text})
             end)
 
-            library:connection(items[ "input" ].FocusLost, function()
+            items[ "input" ].FocusLost:Connect(function()
                 library:tween(items[ "input" ], {TextColor3 = rgb(72, 72, 72)})
             end)
             
@@ -3373,15 +3414,15 @@ end
                 cfg.callback(text)
             end 
             
-            library:connection(items[ "input" ]:GetPropertyChangedSignal("Text"), function()
+            items[ "input" ]:GetPropertyChangedSignal("Text"):Connect(function()
                 cfg.set(items[ "input" ].Text) 
             end)
 
-            library:connection(items[ "input" ].Focused, function()
+            items[ "input" ].Focused:Connect(function()
                 library:tween(items[ "input" ], {TextColor3 = themes.preset.text})
             end)
 
-            library:connection(items[ "input" ].FocusLost, function()
+            items[ "input" ].FocusLost:Connect(function()
                 library:tween(items[ "input" ], {TextColor3 = rgb(72, 72, 72)})
             end)
                 
@@ -3592,7 +3633,7 @@ end
                             PaddingLeft = dim(0, 5)
                         });
 
-                        library:connection(name.MouseButton1Click, function()
+                        name.MouseButton1Click:Connect(function()
                             cfg.set(option)
                             cfg.set_visible(false)
                             cfg.open = false
@@ -3663,9 +3704,11 @@ end
                 items[ "dropdown" ].Position = dim_offset(items[ "keybind_holder" ].AbsolutePosition.X, items[ "keybind_holder" ].AbsolutePosition.Y + items[ "keybind_holder" ].AbsoluteSize.Y + 60)
             end
         
-            library:connection(items[ "keybind_holder" ].MouseButton1Down, function()
+            items[ "keybind_holder" ].MouseButton1Down:Connect(function()
                 task.wait()
                 items[ "key" ].Text = "..."	
+                
+                -- Memory Leak Fix: Use library:connection for global UserInputService events
                 cfg.binding = library:connection(uis.InputBegan, function(keycode, game_event)  
                     cfg.set(keycode.KeyCode ~= Enum.KeyCode.Unknown and keycode.KeyCode or keycode.UserInputType)
                     cfg.binding:Disconnect() 
@@ -3673,11 +3716,12 @@ end
                 end)
             end)
 
-            library:connection(items[ "keybind_holder" ].MouseButton2Down, function()
+            items[ "keybind_holder" ].MouseButton2Down:Connect(function()
                 cfg.open = not cfg.open 
                 cfg.set_visible(cfg.open)
             end)
 
+            -- Memory Leak Fix: Use library:connection for global UserInputService events
             library:connection(uis.InputBegan, function(input, game_event) 
                 if not game_event then
                     local selected_key = input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode or input.UserInputType
@@ -3692,6 +3736,7 @@ end
                 end
             end)    
 
+            -- Memory Leak Fix: Use library:connection for global UserInputService events
             library:connection(uis.InputEnded, function(input, game_event) 
                 if game_event then return end 
                 local selected_key = input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode or input.UserInputType
@@ -3764,7 +3809,7 @@ end
                 }); library:apply_theme(items[ "name" ], "text", "TextColor3");                            
             end 
 
-            library:connection(items[ "button" ].MouseButton1Click, function()
+            items[ "button" ].MouseButton1Click:Connect(function()
                 cfg.callback()
                 items[ "name" ].TextColor3 = themes.preset.accent 
                 library:tween(items[ "name" ], {TextColor3 = themes.preset.text})
@@ -3854,7 +3899,7 @@ end
                 library:close_element(cfg)
             end
             
-            library:connection(items[ "tick" ].MouseButton1Click, function()
+            items[ "tick" ].MouseButton1Click:Connect(function()
                 cfg.open = not cfg.open
                 cfg.set_visible(cfg.open)
             end)
@@ -3941,7 +3986,7 @@ end
                         CornerRadius = dim(0, 3)
                     });     
 
-                    library:connection(button.MouseButton1Click, function()
+                    button.MouseButton1Click:Connect(function()
                         local current = cfg.current_element 
                         if current and current ~= name then 
                             library:tween(current, {TextColor3 = rgb(72, 72, 72)})
@@ -3952,12 +3997,12 @@ end
                         cfg.current_element = name
                     end)
 
-                    library:connection(name.MouseEnter, function()
+                    name.MouseEnter:Connect(function()
                         if cfg.current_element == name then return end 
                         library:tween(name, {TextColor3 = rgb(140, 140, 140)})
                     end)
 
-                    library:connection(name.MouseLeave, function()
+                    name.MouseLeave:Connect(function()
                         if cfg.current_element == name then return end 
                         library:tween(name, {TextColor3 = rgb(72, 72, 72)})
                     end)
